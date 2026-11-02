@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <title>Effect Documents — a happy little page</title>
+  <rect width="128" height="128" rx="30" fill="#EDE7FF"/>
+  <rect x="29" y="25" width="66" height="84" rx="13" transform="rotate(-9 29 25)" fill="#B9A1EC"/>
+  <path d="M43 19h34l22 22v57a12 12 0 0 1-12 12H43a12 12 0 0 1-12-12V31a12 12 0 0 1 12-12Z" fill="#FFFCF5" stroke="#66518E" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M77 19v14a8 8 0 0 0 8 8h14" fill="#D8C9F5"/>
+  <path d="M77 19v14a8 8 0 0 0 8 8h14" stroke="#66518E" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M45 42h15M45 51h22" stroke="#D8C9F5" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="45" cy="79" rx="7" ry="4" fill="#F5B7BD"/>
+  <ellipse cx="84" cy="79" rx="7" ry="4" fill="#F5B7BD"/>
+  <path d="M50 68v6M79 68v6" stroke="#514069" stroke-width="5" stroke-linecap="round"/>
+  <path d="M58 80q7 9 14 0" stroke="#514069" stroke-width="4" stroke-linecap="round"/>
+  <path d="M80 96h12v22l-6-4-6 4V96Z" fill="#77CFB4" stroke="#458E7B" stroke-width="3" stroke-linejoin="round"/>
+  <path d="m109 16 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#B593E3"/>
+  <circle cx="17" cy="88" r="3" fill="#B593E3"/>
+</svg>

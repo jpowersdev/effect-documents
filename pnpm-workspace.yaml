@@ -1,0 +1,11 @@
+packages:
+  - .
+
+allowBuilds:
+  dprint: false
+  esbuild: false
+  sharp: false
+  workerd: false
+
+overrides:
+  "@effect/platform-node-shared": "4.0.6"

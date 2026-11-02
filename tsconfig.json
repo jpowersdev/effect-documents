@@ -1,0 +1,126 @@
+{
+  "$schema": "./node_modules/@effect/tsgo/schema.json",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": [
+      "ES2023"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "strict": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "erasableSyntaxOnly": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "namespaceImportPackages": ["effect", "@effect/*", "effect-delta"],
+        "ignoreEffectSuggestionsInTscExitCode": false,
+        "diagnosticSeverity": {
+          "anyUnknownInErrorContext": "error",
+          "apiStabilityLeak": "error",
+          "asyncFunction": "error",
+          "cryptoRandomUUID": "error",
+          "cryptoRandomUUIDInEffect": "error",
+          "deterministicKeys": "error",
+          "effectDoNotation": "error",
+          "effectFnOpportunity": "error",
+          "extendsNativeError": "error",
+          "globalConsole": "error",
+          "globalConsoleInEffect": "error",
+          "globalDate": "error",
+          "globalDateInEffect": "error",
+          "globalFetch": "error",
+          "globalFetchInEffect": "error",
+          "globalRandom": "error",
+          "globalRandomInEffect": "error",
+          "globalTimers": "error",
+          "globalTimersInEffect": "error",
+          "instanceOfSchema": "error",
+          "missingPipeableSignature": "error",
+          "nestedEffectGenYield": "error",
+          "newPromise": "error",
+          "nodeBuiltinImport": "error",
+          "preferSchemaOverJson": "error",
+          "preferSchemaTypeProperty": "error",
+          "processEnv": "error",
+          "processEnvInEffect": "error",
+          "schemaSync": "error",
+          "schemaUnionOfLiterals": "error",
+          "serviceNotAsClass": "error",
+          "strictEffectProvide": "error",
+          "unnecessaryArrowBlock": "error",
+          "unsafeEffectTypeAssertion": "error"
+        },
+        "overrides": [
+          {
+            "include": [
+              "**/test/**/*",
+              "**/typetest/**/*",
+              "**/examples/**/*",
+              "**/bench/**/*"
+            ],
+            "options": {
+              "diagnosticSeverity": {
+                "apiStabilityLeak": "off",
+                "globalConsole": "off",
+                "missingPipeableSignature": "off",
+                "preferSchemaOverJson": "off",
+                "strictEffectProvide": "off"
+              },
+              "allowedUnstableApis": [
+                "effect-delta",
+                "effect-documents",
+                "effect/Crypto",
+                "effect/http",
+                "effect/net",
+                "effect/rpc",
+                "effect/sql",
+                "@effect/vitest",
+                "@effect/platform-node",
+                "@effect/sql-d1",
+                "@effect/sql-pglite",
+                "@effect/sql-sqlite-node"
+              ]
+            }
+          },
+          {
+            "include": [
+              "**/internal/**/*"
+            ],
+            "options": {
+              "diagnosticSeverity": {
+                "missingPipeableSignature": "off"
+              }
+            }
+          }
+        ],
+        "allowedUnstableApis": [
+          "effect-delta",
+          "effect-documents",
+          "effect/Crypto",
+          "effect/sql"
+        ],
+        "allowedExperimentalApis": [
+          "effect/TextDiff"
+        ]
+      }
+    ]
+  },
+  "include": [
+    "src",
+    "test",
+    "typetest",
+    "examples",
+    "vitest.config.ts"
+  ]
+}
