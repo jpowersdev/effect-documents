@@ -35,7 +35,7 @@
  *   })
  *
  *   const client = yield* ReplicatedText.makeConfirmed({
- *     document: Replica.DocumentId.make(id)
+ *     room: Replica.RoomId.make(id)
  *   }).pipe(
  *     Effect.provideService(Sync.CurrentUser, "@ada")
  *   )
@@ -127,11 +127,11 @@ const historyError = (cause: DocumentStorage.DocumentStorageError) =>
 const makeHistoryStore = (
   storage: DocumentStorage.DocumentStorage["Service"]
 ): HistoryStore.HistoryStore["Service"] => {
-  const idOf = (document: Replica.DocumentId) => Document.Id.make(document)
+  const idOf = (room: Replica.RoomId) => Document.Id.make(room)
   return HistoryStore.HistoryStore.of({
-    load: (document) =>
+    load: (room) =>
       Effect.gen(function*() {
-        const id = idOf(document)
+        const id = idOf(room)
         const { version } = yield* storage.read(id)
         const history = Delta.ReducerUnion.combineAll([
           ...yield* storage.changes(id, { through: version }),
@@ -153,11 +153,11 @@ const makeHistoryStore = (
         ),
         Effect.mapError(historyError)
       ),
-    append: (document, delta) => storage.stage(idOf(document), delta).pipe(Effect.mapError(historyError)),
-    addWriter: (document, replica, owner) =>
+    append: (room, delta) => storage.stage(idOf(room), delta).pipe(Effect.mapError(historyError)),
+    addWriter: (room, replica, owner) =>
       owner === serverUser
         ? Effect.void
-        : storage.addWriter(idOf(document), replica, owner).pipe(Effect.mapError(historyError)),
+        : storage.addWriter(idOf(room), replica, owner).pipe(Effect.mapError(historyError)),
     // Only a replica persisting itself uses these, and this store's replica is the
     // server, which keeps its changes as staged ones.
     setUnconfirmed: () => Effect.void,
@@ -241,7 +241,7 @@ export const layer = <R = never>(options?: {
       const base = yield* Ref.make(Delta.version(
         Delta.ReducerUnion.combineAll(yield* storage.changes(id, { through: version }))
       ))
-      const text = yield* ReplicatedText.makeConfirmed({ document: Replica.DocumentId.make(id) }).pipe(
+      const text = yield* ReplicatedText.makeConfirmed({ room: Replica.RoomId.make(id) }).pipe(
         Effect.provideService(Sync.CurrentUser, serverUser),
         Effect.provideService(Authority.Authority, server),
         Effect.provideService(SecureRandom.SecureRandom, random)
@@ -329,12 +329,12 @@ export const layer = <R = never>(options?: {
       remove: (id) => Effect.andThen(RcMap.invalidate(sessions, id), engine.remove(id))
     })
 
-    const enter = (document: Replica.DocumentId) =>
-      RcMap.get(sessions, Document.Id.make(document)).pipe(Effect.mapError(fromStorage))
+    const enter = (room: Replica.RoomId) =>
+      RcMap.get(sessions, Document.Id.make(room)).pipe(Effect.mapError(fromStorage))
 
     const authority = Authority.Authority.of({
-      subscribe: (request) => Stream.unwrap(Effect.as(enter(request.document), server.subscribe(request))),
-      push: (request) => Effect.andThen(enter(request.document), server.push(request)).pipe(Effect.scoped)
+      subscribe: (request) => Stream.unwrap(Effect.as(enter(request.room), server.subscribe(request))),
+      push: (request) => Effect.andThen(enter(request.room), server.push(request)).pipe(Effect.scoped)
     })
 
     return Context.make(Documents.Documents, documents).pipe(

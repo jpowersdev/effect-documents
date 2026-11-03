@@ -9,6 +9,9 @@ sidebar:
 commands keep working, and an effect-delta `Authority` for clients to sync through. It needs `SecureRandom` from
 `effect/crypto`; plain `Documents` doesn't.
 
+Each document's live editing happens in one effect-delta room, whose id is the document's. A client joins it with
+`Replica.RoomId.make(id)`.
+
 ## In one process
 
 ```ts import.meta.vitest
@@ -32,7 +35,7 @@ const agent: Actor.Actor = {
 const join = (user: string) =>
   Effect.gen(function*() {
     const text = yield* ReplicatedText.makeConfirmed({
-      document: Replica.DocumentId.make(id)
+      room: Replica.RoomId.make(id)
     }).pipe(
       Effect.provideService(Sync.CurrentUser, user)
     )
@@ -185,7 +188,7 @@ const agent: Actor.Actor = {
 // In the client, the text follows everyone else's and sends its own
 const typing = Effect.gen(function*() {
   const text = yield* ReplicatedText.makeConfirmed({
-    document: Replica.DocumentId.make(id)
+    room: Replica.RoomId.make(id)
   })
   yield* text.connection.status.pipe(
     Stream.filter((status) => status._tag === "Synced"),

@@ -31,7 +31,7 @@ import {
 import { layerD1 } from "./utils/d1.ts"
 
 const id = Document.Id.make("spec")
-const document = Replica.DocumentId.make(id)
+const room = Replica.RoomId.make(id)
 const agent: Actor.Actor = {
   by: Actor.Id.make("@agent"),
   via: Option.some({ harness: "test", model: Option.none(), session: Option.none() })
@@ -52,7 +52,7 @@ const start = Effect.flatMap(
 /** A client typing as `user`, caught up with the server. */
 const join = (user: string) =>
   Effect.gen(function*() {
-    const client = yield* ReplicatedText.makeConfirmed({ document }).pipe(
+    const client = yield* ReplicatedText.makeConfirmed({ room }).pipe(
       Effect.provideService(Sync.CurrentUser, user)
     )
     yield* client.connection.status.pipe(
@@ -337,12 +337,12 @@ describe("Collaboration", () => {
     it.effect("a document that doesn't exist can't be joined", () =>
       Effect.gen(function*() {
         const authority = yield* Authority.Authority
-        const pushed = yield* Effect.result(authority.push({ format: 1, document, delta: Delta.empty }))
+        const pushed = yield* Effect.result(authority.push({ format: 1, room, delta: Delta.empty }))
         const failure = Option.getOrThrow(Result.getFailure(pushed))
         assert.strictEqual(failure.reason._tag, "Forbidden")
         const subscribed = yield* Effect.result(Stream.runHead(authority.subscribe({
           format: 1,
-          document,
+          room,
           strategy: "tree",
           version: {},
           authority: true
@@ -402,7 +402,7 @@ describe("Collaboration", () => {
         const authority = yield* Authority.Authority
         yield* ReplicatedText.insert(forged, 0, "Forged")
         const pushed = yield* Effect.result(
-          authority.push({ format: 1, document, delta: yield* Replica.delta(forged, {}) }).pipe(
+          authority.push({ format: 1, room, delta: yield* Replica.delta(forged, {}) }).pipe(
             Effect.provideService(Sync.CurrentUser, "@mallory")
           )
         )
@@ -420,7 +420,7 @@ describe("Collaboration", () => {
         const read = yield* Effect.result(documents.read(id))
         assert.strictEqual(reason(read)._tag, "NotFound")
         const authority = yield* Authority.Authority
-        const pushed = yield* Effect.result(authority.push({ format: 1, document, delta: Delta.empty }))
+        const pushed = yield* Effect.result(authority.push({ format: 1, room, delta: Delta.empty }))
         assert.strictEqual(Option.getOrThrow(Result.getFailure(pushed)).reason._tag, "Forbidden")
       }).pipe(Effect.scoped, Effect.provide(Live)))
   })
@@ -713,7 +713,7 @@ describe("Collaboration", () => {
           }))),
           Layer.provide(RpcSerialization.layerNdjson)
         )))
-        return yield* ReplicatedText.makeConfirmed({ document }).pipe(Effect.provideContext(context))
+        return yield* ReplicatedText.makeConfirmed({ room }).pipe(Effect.provideContext(context))
       })
 
     it.live("real clients type together, and the server decides who they are", () =>
