@@ -449,7 +449,7 @@ const storageFailure = (cause: unknown) =>
 // A replica's id only has to be unique among the writers of one document's text.
 // Compare-and-append lets one revision per version commit and discards the
 // changes of the rest, so the version is unique, and needs no randomness.
-const makeText = (version: number) => ReplicatedText.make({ replica: Replica.ReplicaId.make(String(version)) })
+const makeText = (version: number) => ReplicatedText.make({ replica: Replica.makeId(String(version)) })
 
 const locate = (
   threads: ReadonlyArray<Thread.Located>,

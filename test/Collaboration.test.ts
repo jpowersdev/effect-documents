@@ -96,7 +96,7 @@ const by = (user: string) => ({ by: Actor.Id.make(user), via: Option.none() })
 const rebuilt = Effect.gen(function*() {
   const storage = yield* DocumentStorage.DocumentStorage
   const { version } = yield* storage.read(id)
-  const text = yield* ReplicatedText.make({ replica: Replica.ReplicaId.make("reader") })
+  const text = yield* ReplicatedText.make({ replica: Replica.makeId("reader") })
   yield* Replica.receive(text, Delta.ReducerUnion.combineAll(yield* storage.changes(id, { through: version })))
   return yield* ReplicatedText.get(text)
 })
@@ -398,7 +398,7 @@ describe("Collaboration", () => {
             Effect.map(Delta.ReducerUnion.combineAll)
           )
         ))
-        const forged = yield* ReplicatedText.make({ replica: Replica.ReplicaId.make(replica!) })
+        const forged = yield* ReplicatedText.make({ replica: Replica.makeId(replica!) })
         const authority = yield* Authority.Authority
         yield* ReplicatedText.insert(forged, 0, "Forged")
         const pushed = yield* Effect.result(
@@ -500,7 +500,7 @@ describe("Collaboration", () => {
     // A process that dies without a chance to gather: its changes are only staged.
     const stagedByALostSession = Effect.gen(function*() {
       const storage = yield* DocumentStorage.DocumentStorage
-      const lost = yield* ReplicatedText.make({ replica: Replica.ReplicaId.make("lost-session") })
+      const lost = yield* ReplicatedText.make({ replica: Replica.makeId("lost-session") })
       yield* Replica.receive(lost, Delta.ReducerUnion.combineAll(yield* storage.changes(id, { through: 1 })))
       const base = yield* Replica.version(lost)
       yield* ReplicatedText.insert(lost, 0, "Recovered: ")

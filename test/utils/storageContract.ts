@@ -29,7 +29,7 @@ export const revisionOf = (id: Document.Id, version: number, title = `v${version
 /** Changes that insert `text`, made by `replica`. */
 const deltaOf = (replica: string, text: string) =>
   Effect.gen(function*() {
-    const made = yield* ReplicatedText.make({ replica: Replica.ReplicaId.make(replica) })
+    const made = yield* ReplicatedText.make({ replica: Replica.makeId(replica) })
     yield* ReplicatedText.insert(made, 0, text)
     return yield* Replica.delta(made, {})
   }).pipe(Effect.orDie)
