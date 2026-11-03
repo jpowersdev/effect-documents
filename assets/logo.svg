@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">effect-documents</title>
+  <desc id="desc">Three pages cascading up and to the right: one solid with lines of text, one outlined and one a detached stroke, like a document and the versions behind it.</desc>
+  <rect width="128" height="128" rx="28" fill="#18181A"/>
+  <path d="M41.00 35.00L87.00 35.00L87.00 93.00L41.00 93.00Z" stroke="#FAFAFA" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M52.00 24.00L98.00 24.00L98.00 82.00L52.00 82.00Z" fill="#FAFAFA" stroke="#FAFAFA" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M30.00 46.00L30.00 104.00L76.00 104.00" stroke="#FAFAFA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M59.00 36.76H91.00" stroke="#18181A" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M59.00 53.00H91.00" stroke="#18181A" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M59.00 69.24H77.30" stroke="#18181A" stroke-width="4.5" stroke-linecap="round"/>
+</svg>

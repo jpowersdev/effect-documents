@@ -1,8 +1,19 @@
-# effect-documents
+<p align="center">
+  <img src="assets/logo.svg" width="128" height="128" alt="">
+</p>
 
-Versioned Markdown documents with attributed history, anchored review and live editing, built on
-[Effect](https://effect.website) and [effect-delta](https://github.com/jpowersdev/effect-delta). Unstable: the API may
-change in any minor release.
+<h1 align="center">effect-documents</h1>
+
+<p align="center">
+  Versioned Markdown documents with attributed history, anchored review and live editing, built on <a href="https://effect.website">Effect</a> and <a href="https://github.com/jpowersdev/effect-delta">effect-delta</a>.
+</p>
+
+<p align="center">
+  <a href="https://jpowersdev.github.io/effect-documents/">Documentation</a> ·
+  <a href="https://jpowersdev.github.io/effect-documents/api/">API reference</a>
+</p>
+
+> Unstable: the API may change in any minor release.
 
 ```sh
 pnpm add @jpowersdev/effect-documents @jpowersdev/effect-delta effect

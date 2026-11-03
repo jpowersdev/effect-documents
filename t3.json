@@ -1,6 +1,6 @@
 {
   "$schema": "https://t3.codes/schema/t3.json",
-  "iconPath": ".t3/icon.svg",
+  "iconPath": "assets/logo.svg",
   "defaultThreadEnvMode": "local",
   "scripts": [
     {
@@ -10,6 +10,7 @@
     },
     { "name": "Check types", "command": "pnpm check", "icon": "build" },
     { "name": "Test", "command": "pnpm test", "icon": "test" },
+    { "name": "Test docs", "command": "pnpm doctest", "icon": "test" },
     { "name": "Test types", "command": "pnpm test-types", "icon": "test" },
     { "name": "Lint", "command": "pnpm lint", "icon": "lint" },
     { "name": "Build", "command": "pnpm build", "icon": "build" },
