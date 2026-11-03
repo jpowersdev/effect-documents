@@ -3,6 +3,10 @@ packages:
   - .
   - site
 
+# Our own releases, which needn't wait out the minimum release age.
+minimumReleaseAgeExclude:
+  - '@jpowersdev/effect-delta@0.1.0'
+
 allowBuilds:
   dprint: false
   esbuild: false

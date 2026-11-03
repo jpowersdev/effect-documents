@@ -2,12 +2,9 @@
 set -euo pipefail
 
 documents_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-delta_root="${EFFECT_DELTA_ROOT:-$documents_root/../effect-delta}"
 consumer_dir="$(mktemp -d "${TMPDIR:-/tmp}/effect-documents.XXXXXX")"
 trap 'rm -rf "$consumer_dir"' EXIT
 
-pnpm --dir "$delta_root" --filter @jpowersdev/effect-delta build
-pnpm --dir "$delta_root" --filter @jpowersdev/effect-delta pack --pack-destination "$consumer_dir"
 pnpm --dir "$documents_root" --filter @jpowersdev/effect-documents build
 pnpm --dir "$documents_root" --filter @jpowersdev/effect-documents pack --pack-destination "$consumer_dir"
 
@@ -29,13 +26,17 @@ cat > "$consumer_dir/package.json" <<'JSON'
   "type": "module",
   "dependencies": {
     "@jpowersdev/effect-documents": "file:./jpowersdev-effect-documents-0.1.0.tgz",
-    "@jpowersdev/effect-delta": "file:./jpowersdev-effect-delta-0.1.0.tgz",
+    "@jpowersdev/effect-delta": "0.1.0",
     "@effect/platform-node": "4.1.1",
     "@effect/sql-sqlite-node": "4.1.1",
     "effect": "4.1.1"
   }
 }
 JSON
+cat > "$consumer_dir/pnpm-workspace.yaml" <<'YAML'
+minimumReleaseAgeExclude:
+  - '@jpowersdev/effect-delta@0.1.0'
+YAML
 cat > "$consumer_dir/tsconfig.json" <<'JSON'
 {
   "compilerOptions": {

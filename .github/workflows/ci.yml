@@ -52,11 +52,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The development dependency on effect-delta is a directory beside this one
-      - run: git clone --depth 1 https://github.com/jpowersdev/effect-delta ../effect-delta
       - uses: ./.github/actions/setup
-      # The package check packs effect-delta too
-      - run: pnpm install --dir ../effect-delta --frozen-lockfile --ignore-scripts
       - run: pnpm exec effect-tsgo patch --typescript
       - run: pnpm check
       - run: pnpm test

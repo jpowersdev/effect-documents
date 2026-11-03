@@ -91,7 +91,7 @@
     "babel-plugin-annotate-pure-calls": "0.5.0",
     "dprint": "0.60.1",
     "effect": "4.1.1",
-    "@jpowersdev/effect-delta": "file:../effect-delta",
+    "@jpowersdev/effect-delta": "0.1.0",
     "miniflare": "5.20260925.0-alpha",
     "oxlint": "1.87.0",
     "tstyche": "7.2.5",

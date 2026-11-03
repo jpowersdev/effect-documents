@@ -38,9 +38,6 @@ gh api -X POST repos/jpowersdev/effect-delta/pages -f build_type=workflow
 gh workflow run docs.yml -R jpowersdev/effect-delta
 ```
 
-effect-documents' workflow clones effect-delta beside its checkout, for its `file:` development
-dependency.
-
 ## Later releases
 
 Add a changeset to each change. Merging one opens a "Version Packages" pull request, and merging that publishes from

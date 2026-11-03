@@ -23,13 +23,8 @@ changing Effect code.
 - `site/`: the docs site. Guides are written by hand and the API reference is generated from
   doc comments (`pnpm docs:build`). `pnpm doctest` runs every example in the guides, the README
   and doc comments, and `pnpm pack-check` runs them again against the packed library.
-- `scripts/pack-check.sh`: builds and packs the library and effect-delta, installs
-  them in an isolated consumer, checks NodeNext types and runs the JavaScript.
-
-The local effect-delta development dependency is a directory package at
-`../effect-delta`. Use `file:`, not `link:`, so its Effect peer resolves
-to the same runtime. The packed library depends on ordinary peers, not that path. A
-worktree whose parent has no `effect-delta` needs a symlink there before installing.
+- `scripts/pack-check.sh`: builds and packs the library, installs it in an isolated
+  consumer with its published peers, checks NodeNext types and runs the JavaScript.
 
 ## Validation
 

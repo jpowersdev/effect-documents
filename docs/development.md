@@ -1,8 +1,5 @@
 # Development
 
-Development expects an effect-delta checkout beside this one, used as a directory package (`file:`, not `link:`) so both
-share one Effect runtime. Reinstall after changing it.
-
 ```sh
 pnpm install --ignore-scripts
 pnpm exec effect-tsgo patch --typescript
