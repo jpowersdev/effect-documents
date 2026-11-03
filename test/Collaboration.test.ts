@@ -913,7 +913,9 @@ describe("Collaboration", () => {
               Array.from({ length: (yield* documents.history(id)).length }, (_, i) => i + 1)
             )
           }).pipe(Effect.scoped, Effect.provide(Session.pipe(Layer.provideMerge(store))))
-        })
+        }),
+        // PostgreSQL makes a new database for every case.
+        { timeout: 60_000 }
       )
     }
   })
