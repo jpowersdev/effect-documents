@@ -33,7 +33,7 @@
  *   return yield* documents.read(id, { version: first.version })
  * })
  *
- * const Live = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
+ * const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
  * ```
  *
  * @stability unstable

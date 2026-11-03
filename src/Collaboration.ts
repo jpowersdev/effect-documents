@@ -34,7 +34,7 @@
  *   yield* documents.apply({ id, actor: agent, command: { _tag: "Edit", oldString: "24", newString: "8" } })
  * })
  *
- * const Live = Collaboration.layer().pipe(Layer.provide(DocumentStorage.layerMemory))
+ * const CollaborationLive = Collaboration.layer().pipe(Layer.provide(DocumentStorage.layerMemory))
  * ```
  *
  * @stability unstable

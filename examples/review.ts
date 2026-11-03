@@ -28,5 +28,5 @@ const program = Effect.gen(function*() {
   yield* Console.log((yield* documents.read(id, { version: first.version })).body)
 })
 
-const Live = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
-NodeRuntime.runMain(program.pipe(Effect.provide(Live)))
+const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
+NodeRuntime.runMain(program.pipe(Effect.provide(DocumentsLive)))

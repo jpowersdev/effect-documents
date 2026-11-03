@@ -43,8 +43,8 @@ const program = Effect.gen(function*() {
   yield* Console.log(history.map(({ action, actors }) => `${action} by ${actors.map(({ by }) => by).join(", ")}`))
 })
 
-const Live = Collaboration.layer().pipe(
+const CollaborationLive = Collaboration.layer().pipe(
   Layer.provideMerge(DocumentStorage.layerMemory),
   Layer.provideMerge(SecureRandom.layerWebCrypto)
 )
-NodeRuntime.runMain(program.pipe(Effect.scoped, Effect.provide(Live)))
+NodeRuntime.runMain(program.pipe(Effect.scoped, Effect.provide(CollaborationLive)))

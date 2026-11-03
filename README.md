@@ -31,8 +31,8 @@ const program = Effect.gen(function*() {
   return { second, original }
 })
 
-const Live = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
-await Effect.runPromise(program.pipe(Effect.provide(Live)))
+const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 ```
 
 [`examples/review.ts`](examples/review.ts) also opens an anchored discussion, and
@@ -114,16 +114,16 @@ import { SecureRandom } from "effect/crypto"
 import { RpcServer } from "effect/rpc"
 
 // One instance for all of a document's writers.
-const Live = Collaboration.layer({
+const CollaborationLive = Collaboration.layer({
   // Optional: decide whether a live change is accepted.
   check: ({ user }) =>
     canEdit(user) ? Effect.void : Effect.fail(new Authority.Rejected({ message: "Read only" }))
 }).pipe(Layer.provide(SqlDocumentStorage.layerStorage({})), Layer.provide(SecureRandom.layerWebCrypto))
 
 // Serve it over any RPC protocol, saying who's connecting and what they may do.
-const Server = RpcServer.layer(Sync.Rpcs).pipe(
+const ServerLive = RpcServer.layer(Sync.Rpcs).pipe(
   Layer.provide(Authority.layerHandlers),
-  Layer.provide([Live, YourAuthorization]),
+  Layer.provide([CollaborationLive, YourAuthorization]),
   Layer.provide(RpcServer.layerProtocolWebsocket({ path: "/sync" }))
 )
 
@@ -173,9 +173,9 @@ Works on SQLite (including D1) and PostgreSQL.
 
 ```ts
 // Create the tables on startup...
-const Live = Documents.layer.pipe(Layer.provide(SqlDocumentStorage.layer))
+const DocumentsLive = Documents.layer.pipe(Layer.provide(SqlDocumentStorage.layer))
 // ...or separately, in a deploy step or a migration file, and use it without DDL.
-const Runtime = Documents.layer.pipe(Layer.provide(SqlDocumentStorage.layerStorage({})))
+const DocumentsWithoutDdl = Documents.layer.pipe(Layer.provide(SqlDocumentStorage.layerStorage({})))
 ```
 
 The tables, for a host's migration files (with the default prefix):
