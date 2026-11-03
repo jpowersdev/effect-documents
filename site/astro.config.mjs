@@ -10,6 +10,14 @@ export default defineConfig({
       description: "Versioned Markdown documents with attributed history, anchored review and live editing, for Effect.",
       logo: { src: "./src/assets/logo.svg" },
       favicon: "/favicon.svg",
+      // What a link to the site shows when it's shared
+      head: [
+        { tag: "meta", attrs: { property: "og:image", content: "https://jpowersdev.github.io/effect-documents/social-preview.png" } },
+        { tag: "meta", attrs: { property: "og:image:width", content: "1280" } },
+        { tag: "meta", attrs: { property: "og:image:height", content: "640" } },
+        { tag: "meta", attrs: { property: "og:image:alt", content: "effect-documents: versioned Markdown documents for Effect" } },
+        { tag: "meta", attrs: { name: "twitter:image", content: "https://jpowersdev.github.io/effect-documents/social-preview.png" } }
+      ],
       customCss: ["./src/styles/custom.css"],
       // Code fits the content column from 1440px up; narrower screens wrap it
       expressiveCode: { defaultProps: { wrap: true } },
