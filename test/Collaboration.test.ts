@@ -5,6 +5,7 @@ import { Authority, Delta, Replica, ReplicatedText, Sync, TextPatch } from "@jpo
 import { SecureRandom } from "effect/crypto"
 import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
+import * as Exit from "effect/Exit"
 import * as Fiber from "effect/Fiber"
 import { Headers, HttpRouter, HttpServer } from "effect/http"
 import * as Layer from "effect/Layer"
@@ -13,6 +14,7 @@ import * as Option from "effect/Option"
 import * as Result from "effect/Result"
 import { RpcClient, RpcSerialization, RpcServer } from "effect/rpc"
 import * as Schema from "effect/Schema"
+import * as Scope from "effect/Scope"
 import type * as SqlClient from "effect/sql/SqlClient"
 import * as Stream from "effect/Stream"
 import { TestClock } from "effect/testing"
@@ -421,6 +423,77 @@ describe("Collaboration", () => {
         const pushed = yield* Effect.result(authority.push({ format: 1, document, delta: Delta.empty }))
         assert.strictEqual(Option.getOrThrow(Result.getFailure(pushed)).reason._tag, "Forbidden")
       }).pipe(Effect.scoped, Effect.provide(Live)))
+  })
+
+  describe("closing", () => {
+    it.effect("gathers an edit that was still being saved when the session closed", () =>
+      Effect.gen(function*() {
+        const saving = yield* Deferred.make<void>()
+        const resume = yield* Deferred.make<void>()
+        const storage = yield* DocumentStorage.DocumentStorage
+        const held = DocumentStorage.DocumentStorage.of({
+          ...storage,
+          stage: (id, changes) =>
+            Effect.andThen(
+              Effect.andThen(Deferred.succeed(saving, undefined), Deferred.await(resume)),
+              storage.stage(id, changes)
+            )
+        })
+        const session = yield* Scope.make()
+        const context = yield* Layer.buildWithScope(
+          Session.pipe(Layer.provide(Layer.succeed(DocumentStorage.DocumentStorage)(held))),
+          session
+        )
+        yield* Effect.gen(function*() {
+          yield* start
+          const ada = yield* join("@ada")
+          yield* ReplicatedText.insert(ada, 0, "Draft: ")
+          yield* Deferred.await(saving)
+
+          const closing = yield* Effect.forkChild(Scope.close(session, Exit.void))
+          // Finalizers that don't depend on the save get to run first.
+          yield* Effect.repeat(Effect.yieldNow, { times: 100 })
+          yield* Deferred.succeed(resume, undefined)
+          yield* Fiber.join(closing)
+        }).pipe(Effect.scoped, Effect.provide(context))
+
+        const revision = yield* storage.read(id)
+        assert.strictEqual(revision.action, "Merge")
+        assert.strictEqual(revision.document.body, `Draft: ${body}`)
+        assert.deepStrictEqual(yield* storage.staged(id), [])
+      }).pipe(Effect.provide(Stored)))
+
+    it.effect("a released session stops following the document", () =>
+      Effect.gen(function*() {
+        const storage = yield* DocumentStorage.DocumentStorage
+        let loads = 0
+        const counting = DocumentStorage.DocumentStorage.of({
+          ...storage,
+          // Asked for when the session's server loads a document, and by a merge.
+          writers: (id) => Effect.suspend(() => (loads++, storage.writers(id)))
+        })
+        yield* Effect.gen(function*() {
+          yield* start
+          yield* Effect.scoped(Effect.gen(function*() {
+            const ada = yield* join("@ada")
+            yield* ReplicatedText.insert(ada, 0, "Draft: ")
+            yield* saved(ada)
+          }))
+
+          // The session's released, then the server's copy, which is only free to go
+          // once the session has stopped subscribing to it.
+          yield* TestClock.adjust("1 minute")
+          assert.strictEqual((yield* storage.read(id)).action, "Merge")
+          yield* TestClock.adjust("1 minute")
+
+          const before = loads
+          yield* Effect.scoped(join("@ben"))
+          assert.strictEqual(loads, before + 1)
+        }).pipe(
+          Effect.scoped,
+          Effect.provide(Session.pipe(Layer.provide(Layer.succeed(DocumentStorage.DocumentStorage)(counting))))
+        )
+      }).pipe(Effect.provide(Stored)))
   })
 
   describe("durability", () => {
