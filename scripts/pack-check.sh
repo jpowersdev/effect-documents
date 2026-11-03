@@ -3,13 +3,14 @@ set -euo pipefail
 
 documents_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 consumer_dir="$(mktemp -d "${TMPDIR:-/tmp}/effect-documents.XXXXXX")"
+version="$(node -p "require('$documents_root/package.json').version")"
 trap 'rm -rf "$consumer_dir"' EXIT
 
 pnpm --dir "$documents_root" --filter @jpowersdev/effect-documents build
 pnpm --dir "$documents_root" --filter @jpowersdev/effect-documents pack --pack-destination "$consumer_dir"
 
 # Only built modules ship, and nothing but the package's own public surface resolves.
-documents_tarball="$consumer_dir/jpowersdev-effect-documents-0.1.0.tgz"
+documents_tarball="$consumer_dir/jpowersdev-effect-documents-$version.tgz"
 packed="$(tar -tzf "$documents_tarball")"
 for module in Actor Document Documents DocumentStorage Revision SqlDocumentStorage Thread index; do
   grep -qx "package/dist/$module.js" <<<"$packed" || { echo "missing dist/$module.js"; exit 1; }
@@ -20,12 +21,12 @@ if grep -E '^package/(test|typetest|examples|scripts)/' <<<"$packed"; then
   exit 1
 fi
 
-cat > "$consumer_dir/package.json" <<'JSON'
+cat > "$consumer_dir/package.json" <<JSON
 {
   "private": true,
   "type": "module",
   "dependencies": {
-    "@jpowersdev/effect-documents": "file:./jpowersdev-effect-documents-0.1.0.tgz",
+    "@jpowersdev/effect-documents": "file:./jpowersdev-effect-documents-$version.tgz",
     "@jpowersdev/effect-delta": "0.1.0",
     "@effect/platform-node": "4.1.1",
     "@effect/sql-sqlite-node": "4.1.1",
