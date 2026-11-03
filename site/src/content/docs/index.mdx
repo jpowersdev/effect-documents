@@ -28,7 +28,10 @@ import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
+  const actor: Actor.Actor = {
+    by: Actor.Id.make("@owner"),
+    via: Option.none()
+  }
   const id = Document.Id.make("performance-map")
 
   const first = yield* documents.create({
@@ -40,12 +43,18 @@ const program = Effect.gen(function*() {
   yield* documents.apply({
     id,
     actor,
-    command: { _tag: "Edit", oldString: "40 ms", newString: "32 ms" }
+    command: {
+      _tag: "Edit",
+      oldString: "40 ms",
+      newString: "32 ms"
+    }
   })
 
   // The current text, and any earlier version
   const now = yield* documents.read(id)
-  const then = yield* documents.read(id, { version: first.version })
+  const then = yield* documents.read(id, {
+    version: first.version
+  })
   yield* Effect.log([now.body, then.body])
 })
 
@@ -59,9 +68,9 @@ await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
     Every successful command appends one immutable revision, crediting who ran it. Any version can be read back.
 
     ```ts
-    yield* documents.apply({ id, actor, command })
+    yield* documents.apply(request)
     yield* documents.history(id)
-    yield* documents.read(id, { version: 1 })
+    yield* documents.read(id)
     ```
 
     <LinkButton href="guides/commands/" variant="minimal" icon="right-arrow">Commands</LinkButton>
@@ -70,9 +79,9 @@ await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
     Discussions attach to the text they're about, and follow it through later edits.
 
     ```ts
-    yield* documents.apply({ id, actor, command: {
-      _tag: "Open", thread, start: 12, quote: "40 ms", body
-    } })
+    const edited = yield* documents.apply(request)
+    const thread = edited.threads[0]!
+    thread.range // Follows its text through the edit
     ```
 
     <LinkButton href="guides/commands/#discuss-a-passage" variant="minimal" icon="right-arrow">Discussions</LinkButton>
@@ -81,9 +90,9 @@ await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
     People type at once while agents run commands, and the changes join the history.
 
     ```ts
-    const text = yield* ReplicatedText.makeConfirmed({ document })
+    const text = yield* ReplicatedText.makeConfirmed(options)
     yield* ReplicatedText.insert(text, 0, "Draft: ")
-    yield* documents.apply({ id, actor, command })
+    yield* documents.apply(request)
     ```
 
     <LinkButton href="guides/live-editing/" variant="minimal" icon="right-arrow">Live editing</LinkButton>

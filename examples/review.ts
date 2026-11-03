@@ -10,9 +10,17 @@ import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
+  const actor: Actor.Actor = {
+    by: Actor.Id.make("@owner"),
+    via: Option.none()
+  }
   const id = Document.Id.make("performance-map")
-  const first = yield* documents.create({ id, actor, title: "Performance map", body: "Clicks take 40 ms." })
+  const first = yield* documents.create({
+    id,
+    actor,
+    title: "Performance map",
+    body: "Clicks take 40 ms."
+  })
   yield* documents.apply({
     id,
     actor,
@@ -28,10 +36,18 @@ const program = Effect.gen(function*() {
     id,
     actor,
     note: "Updated after a paired run.",
-    command: { _tag: "Edit", oldString: "40 ms", newString: "32 ms in the Chromium fixture" }
+    command: {
+      _tag: "Edit",
+      oldString: "40 ms",
+      newString: "32 ms in the Chromium fixture"
+    }
   })
   yield* Effect.log(third.body)
-  yield* Effect.log((yield* documents.read(id, { version: first.version })).body)
+  yield* Effect.log(
+    (yield* documents.read(id, {
+      version: first.version
+    })).body
+  )
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))

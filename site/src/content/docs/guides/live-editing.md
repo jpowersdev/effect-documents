@@ -24,7 +24,10 @@ import { Effect, Layer, Option, Stream } from "effect"
 import { SecureRandom } from "effect/crypto"
 
 const id = Document.Id.make("spec")
-const agent: Actor.Actor = { by: Actor.Id.make("@agent"), via: Option.none() }
+const agent: Actor.Actor = {
+  by: Actor.Id.make("@agent"),
+  via: Option.none()
+}
 
 const join = (user: string) =>
   Effect.gen(function*() {
@@ -65,7 +68,11 @@ const program = Effect.gen(function*() {
   yield* documents.apply({
     id,
     actor: agent,
-    command: { _tag: "Edit", oldString: "24", newString: "8" }
+    command: {
+      _tag: "Edit",
+      oldString: "24",
+      newString: "8"
+    }
   })
 
   const history = yield* documents.history(id)
@@ -112,7 +119,11 @@ import { createServer } from "node:http"
 const CollaborationLive = Collaboration.layer({
   check: ({ user }) =>
     user === "@viewer"
-      ? Effect.fail(new Authority.Rejected({ message: "Read only" }))
+      ? Effect.fail(
+        new Authority.Rejected({
+          message: "Read only"
+        })
+      )
       : Effect.void
 }).pipe(
   Layer.provideMerge(DocumentStorage.layerMemory),
@@ -123,7 +134,11 @@ const CollaborationLive = Collaboration.layer({
 const Users = Layer.succeed(Sync.Authorization)({
   identify: (headers) =>
     Effect.fromOption(Headers.get(headers, "x-user")).pipe(
-      Effect.mapError(() => new Sync.Forbidden({ message: "Sign in first" }))
+      Effect.mapError(() =>
+        new Sync.Forbidden({
+          message: "Sign in first"
+        })
+      )
     ),
   authorize: () => Effect.void
 })
@@ -132,12 +147,19 @@ const ServerLive = HttpRouter.serve(
   RpcServer.layer(Sync.Rpcs).pipe(
     Layer.provide(Authority.layerHandlers),
     Layer.provide(Users),
-    Layer.provide(RpcServer.layerProtocolWebsocket({ path: "/sync" }))
+    Layer.provide(RpcServer.layerProtocolWebsocket({
+      path: "/sync"
+    }))
   ),
-  { disableListenLog: true, disableLogger: true }
+  {
+    disableListenLog: true,
+    disableLogger: true
+  }
 ).pipe(
   Layer.provideMerge(CollaborationLive),
-  Layer.provide(NodeHttpServer.layer(createServer, { port: 3102 })),
+  Layer.provide(NodeHttpServer.layer(createServer, {
+    port: 3102
+  })),
   Layer.provide(RpcSerialization.layerNdjson)
 )
 
@@ -146,14 +168,19 @@ const AuthorityRemote = Authority.layerRemote.pipe(
   Layer.provide(RpcClient.layerProtocolSocket()),
   Layer.provide(
     NodeSocket.layerWebSocket("ws://localhost:3102/sync", {
-      headers: { "x-user": "@ada" }
+      headers: {
+        "x-user": "@ada"
+      }
     })
   ),
   Layer.provide(RpcSerialization.layerNdjson)
 )
 
 const id = Document.Id.make("spec")
-const agent: Actor.Actor = { by: Actor.Id.make("@agent"), via: Option.none() }
+const agent: Actor.Actor = {
+  by: Actor.Id.make("@agent"),
+  via: Option.none()
+}
 
 // In the client, the text follows everyone else's and sends its own
 const typing = Effect.gen(function*() {

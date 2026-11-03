@@ -55,7 +55,11 @@ interface Env {
 const Users = Layer.succeed(Sync.Authorization)({
   identify: (headers) =>
     Effect.fromOption(Headers.get(headers, "x-user")).pipe(
-      Effect.mapError(() => new Sync.Forbidden({ message: "Sign in first" }))
+      Effect.mapError(() =>
+        new Sync.Forbidden({
+          message: "Sign in first"
+        })
+      )
     ),
   authorize: () => Effect.void
 })
@@ -87,7 +91,9 @@ const ObjectLive = (db: D1Database) =>
     Layer.provide(RpcSerialization.layerNdjson),
     Layer.provideMerge(Collaboration.layer()),
     Layer.provide(SqlDocumentStorage.layer),
-    Layer.provide(D1Client.layer({ db })),
+    Layer.provide(D1Client.layer({
+      db
+    })),
     Layer.provide(SecureRandom.layerWebCrypto)
   )
 
@@ -99,15 +105,26 @@ export class DocumentObject extends DurableObject<Env> {
     const id = Document.Id.make(new URL(request.url).pathname.split("/")[2]!)
 
     if (request.headers.get("upgrade") !== "websocket") {
-      const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
+      const actor: Actor.Actor = {
+        by: Actor.Id.make("@owner"),
+        via: Option.none()
+      }
       const body = await request.text()
       const created = await this.runtime.runPromise(
         Effect.flatMap(
           Documents.Documents,
-          (documents) => documents.create({ id, actor, title: id, body })
+          (documents) =>
+            documents.create({
+              id,
+              actor,
+              title: id,
+              body
+            })
         )
       )
-      return Response.json({ version: created.version })
+      return Response.json({
+        version: created.version
+      })
     }
 
     const { 0: client, 1: server } = new WebSocketPair()
@@ -115,11 +132,18 @@ export class DocumentObject extends DurableObject<Env> {
     const base = HttpServerRequest.fromWeb(request)
     // The request, with this side of the pair as its socket
     const upgraded: HttpServerRequest.HttpServerRequest = Object.create(base, {
-      upgrade: { value: Socket.fromWebSocket(Effect.succeed(server)) },
-      headers: { value: base.headers }
+      upgrade: {
+        value: Socket.fromWebSocket(Effect.succeed(server))
+      },
+      headers: {
+        value: base.headers
+      }
     })
     this.runtime.runFork(Effect.flatMap(Sockets, ({ accept }) => accept(upgraded)))
-    return new Response(null, { status: 101, webSocket: client })
+    return new Response(null, {
+      status: 101,
+      webSocket: client
+    })
   }
 }
 

@@ -10,11 +10,16 @@ import { Effect, Layer, Option, Stream } from "effect"
 import { SecureRandom } from "effect/crypto"
 
 const id = Document.Id.make("spec")
-const agent: Actor.Actor = { by: Actor.Id.make("@agent"), via: Option.none() }
+const agent: Actor.Actor = {
+  by: Actor.Id.make("@agent"),
+  via: Option.none()
+}
 
 const join = (user: string) =>
   Effect.gen(function*() {
-    const text = yield* ReplicatedText.makeConfirmed({ document: Replica.DocumentId.make(id) }).pipe(
+    const text = yield* ReplicatedText.makeConfirmed({
+      document: Replica.DocumentId.make(id)
+    }).pipe(
       Effect.provideService(Sync.CurrentUser, user)
     )
     yield* text.connection.status.pipe(Stream.filter((status) => status._tag === "Synced"), Stream.runHead)
@@ -26,7 +31,12 @@ const saved = (text: ReplicatedText.Confirmed) =>
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  yield* documents.create({ id, actor: agent, title: "Spec", body: "Sessions last 24 hours." })
+  yield* documents.create({
+    id,
+    actor: agent,
+    title: "Spec",
+    body: "Sessions last 24 hours."
+  })
 
   const ada = yield* join("@ada")
   const ben = yield* join("@ben")
@@ -39,7 +49,11 @@ const program = Effect.gen(function*() {
   const edited = yield* documents.apply({
     id,
     actor: agent,
-    command: { _tag: "Edit", oldString: "24", newString: "8" }
+    command: {
+      _tag: "Edit",
+      oldString: "24",
+      newString: "8"
+    }
   })
   yield* Effect.log(edited.body)
 

@@ -31,7 +31,10 @@ import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
+  const actor: Actor.Actor = {
+    by: Actor.Id.make("@owner"),
+    via: Option.none()
+  }
   const id = Document.Id.make("performance-map")
 
   yield* documents.create({
@@ -44,7 +47,11 @@ const program = Effect.gen(function*() {
     id,
     actor,
     note: "Updated after a paired run.",
-    command: { _tag: "Edit", oldString: "40 ms", newString: "32 ms" }
+    command: {
+      _tag: "Edit",
+      oldString: "40 ms",
+      newString: "32 ms"
+    }
   })
 
   const history = yield* documents.history(id)

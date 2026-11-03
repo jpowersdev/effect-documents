@@ -15,18 +15,28 @@
  * **Example** (Two people typing while an agent edits)
  *
  * ```ts import.meta.vitest
- * import { Effect, Layer, Option, Stream } from "effect"
- * import { SecureRandom } from "effect/crypto"
  * import { Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
  * import { Actor, Collaboration, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
+ * import { Effect, Layer, Option, Stream } from "effect"
+ * import { SecureRandom } from "effect/crypto"
  *
  * const program = Effect.gen(function*() {
  *   const documents = yield* Documents.Documents
  *   const id = Document.Id.make("spec")
- *   const agent: Actor.Actor = { by: Actor.Id.make("@agent"), via: Option.none() }
- *   yield* documents.create({ id, actor: agent, title: "Spec", body: "Sessions last 24 hours." })
+ *   const agent: Actor.Actor = {
+ *     by: Actor.Id.make("@agent"),
+ *     via: Option.none()
+ *   }
+ *   yield* documents.create({
+ *     id,
+ *     actor: agent,
+ *     title: "Spec",
+ *     body: "Sessions last 24 hours."
+ *   })
  *
- *   const client = yield* ReplicatedText.makeConfirmed({ document: Replica.DocumentId.make(id) }).pipe(
+ *   const client = yield* ReplicatedText.makeConfirmed({
+ *     document: Replica.DocumentId.make(id)
+ *   }).pipe(
  *     Effect.provideService(Sync.CurrentUser, "@ada")
  *   )
  *   yield* ReplicatedText.changes(client).pipe(Stream.filter((text) => text.length > 0), Stream.runHead)
@@ -36,7 +46,11 @@
  *   const edited = yield* documents.apply({
  *     id,
  *     actor: agent,
- *     command: { _tag: "Edit", oldString: "24", newString: "8" }
+ *     command: {
+ *       _tag: "Edit",
+ *       oldString: "24",
+ *       newString: "8"
+ *     }
  *   })
  *   return edited.body
  * })

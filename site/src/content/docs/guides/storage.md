@@ -26,7 +26,10 @@ import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
+  const actor: Actor.Actor = {
+    by: Actor.Id.make("@owner"),
+    via: Option.none()
+  }
   const created = yield* documents.create({
     id: Document.Id.make("spec"),
     actor,
@@ -40,7 +43,9 @@ const program = Effect.gen(function*() {
 const DocumentsLive = Documents.layer.pipe(
   Layer.provide(SqlDocumentStorage.layer),
   // A file name keeps it between runs
-  Layer.provide(SqliteClient.layer({ filename: ":memory:" }))
+  Layer.provide(SqliteClient.layer({
+    filename: ":memory:"
+  }))
 )
 
 await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
@@ -107,7 +112,10 @@ const StorageLive = Layer.unwrap(Effect.gen(function*() {
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
+  const actor: Actor.Actor = {
+    by: Actor.Id.make("@owner"),
+    via: Option.none()
+  }
   yield* documents.create({
     id: Document.Id.make("spec"),
     actor,
@@ -123,7 +131,9 @@ const program = Effect.gen(function*() {
 
 const DocumentsLive = Documents.layer.pipe(
   Layer.provide(StorageLive),
-  Layer.provideMerge(SqliteClient.layer({ filename: ":memory:" }))
+  Layer.provideMerge(SqliteClient.layer({
+    filename: ":memory:"
+  }))
 )
 
 await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))

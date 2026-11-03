@@ -35,17 +35,33 @@ const Payload = Schema.Struct({
 // What an authenticated request to PATCH /documents/spec might carry
 const body = {
   note: "Tightened",
-  command: { _tag: "Edit", oldString: "24", newString: "8" }
+  command: {
+    _tag: "Edit",
+    oldString: "24",
+    newString: "8"
+  }
 }
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
   const id = Document.Id.make("spec")
-  const actor: Actor.Actor = { by: Actor.Id.make("@ada"), via: Option.none() }
-  yield* documents.create({ id, actor, title: "Spec", body: "Sessions last 24 hours." })
+  const actor: Actor.Actor = {
+    by: Actor.Id.make("@ada"),
+    via: Option.none()
+  }
+  yield* documents.create({
+    id,
+    actor,
+    title: "Spec",
+    body: "Sessions last 24 hours."
+  })
 
   const payload = yield* Schema.decodeUnknownEffect(Payload)(body)
-  const edited = yield* documents.apply({ id, actor, ...payload })
+  const edited = yield* documents.apply({
+    id,
+    actor,
+    ...payload
+  })
   yield* Effect.log(edited.body)
 })
 

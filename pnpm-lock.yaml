@@ -203,6 +203,9 @@ importers:
       '@babel/core':
         specifier: 8.0.7
         version: 8.0.7
+      '@babel/parser':
+        specifier: 8.0.10
+        version: 8.0.10
       '@changesets/changelog-github':
         specifier: 1.0.1
         version: 1.0.1

@@ -36,7 +36,10 @@ import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
+  const actor: Actor.Actor = {
+    by: Actor.Id.make("@owner"),
+    via: Option.none()
+  }
   const id = Document.Id.make("spec")
 
   const first = yield* documents.create({
@@ -48,14 +51,22 @@ const program = Effect.gen(function*() {
   yield* documents.apply({
     id,
     actor,
-    command: { _tag: "Edit", oldString: "24", newString: "8" }
+    command: {
+      _tag: "Edit",
+      oldString: "24",
+      newString: "8"
+    }
   })
 
   // Named a version that's no longer current
   const result = yield* documents.apply({
     id,
     actor,
-    command: { _tag: "Update", version: first.version, body: "Sessions never end." }
+    command: {
+      _tag: "Update",
+      version: first.version,
+      body: "Sessions never end."
+    }
   }).pipe(
     Effect.map(() => "Updated"),
     Effect.catchReason(
@@ -93,7 +104,10 @@ import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
+  const actor: Actor.Actor = {
+    by: Actor.Id.make("@owner"),
+    via: Option.none()
+  }
   const id = Document.Id.make("performance-map")
   const thread = Thread.Id.make("measurement")
 
@@ -106,7 +120,13 @@ const program = Effect.gen(function*() {
   yield* documents.apply({
     id,
     actor,
-    command: { _tag: "Open", thread, start: 12, quote: "40 ms", body: "Which browser?" }
+    command: {
+      _tag: "Open",
+      thread,
+      start: 12,
+      quote: "40 ms",
+      body: "Which browser?"
+    }
   })
 
   // The anchor follows its characters as the text moves around them
