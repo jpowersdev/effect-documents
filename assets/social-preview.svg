@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#18181A"/>
+  <svg x="110" y="150" width="320" height="320" viewBox="0 0 128 128" fill="none">
+  <path d="M41.00 35.00L87.00 35.00L87.00 93.00L41.00 93.00Z" stroke="#FAFAFA" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M52.00 24.00L98.00 24.00L98.00 82.00L52.00 82.00Z" fill="#FAFAFA" stroke="#FAFAFA" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M30.00 46.00L30.00 104.00L76.00 104.00" stroke="#FAFAFA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M59.00 36.76H91.00" stroke="#18181A" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M59.00 53.00H91.00" stroke="#18181A" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M59.00 69.24H77.30" stroke="#18181A" stroke-width="4.5" stroke-linecap="round"/>
+</svg>
+  <g font-family="Noto Sans, sans-serif">
+    <text x="476" y="286" font-size="88" font-weight="700" fill="#FAFAFA" letter-spacing="-2">effect-documents</text>
+    <text x="480" y="346" font-size="30" fill="#A1A1AA">Versioned Markdown documents for Effect</text>
+    <text x="480" y="396" font-size="24" fill="#71717A">attributed history · anchored review · live editing</text>
+  </g>
+  <rect x="476" y="436" width="556" height="54" rx="12" fill="#27272A"/>
+  <text x="498" y="471" font-family="Hack, DejaVu Sans Mono, monospace" font-size="23" fill="#D4D4D8">pnpm add @jpowersdev/effect-documents</text>
+</svg>
