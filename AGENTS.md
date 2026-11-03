@@ -12,10 +12,8 @@ kept, and `docs/conventions.md` before changing Effect code.
 
 - `src/`: namespace modules for the document engine, its storage service and SQL
   implementation, live editing, history, actors and anchored review. Internal implementation belongs
-  in `src/internal/`. Designed to fit Effect's repository as `effect/documents`: match
-  how a package there is laid out, named and documented. The unscoped package name is
-  the only namespace token, so replacing `effect-documents` with `effect/documents`
-  gives the core form; don't scope it.
+  in `src/internal/`. Built the way Effect's own packages are: match how a package in
+  Effect's repository is laid out, named and documented.
 - `test/`: behavior tests, and `test/utils/storageContract.ts`, which memory, SQLite,
   PostgreSQL (PGlite) and D1 (miniflare) all run. `test/consumer/` is also installed
   outside this repository by the package check.

@@ -2,8 +2,7 @@
 
 effect-documents needs effect-delta on the registry first. The first release of each
 is by hand, because npm's trusted publishing can only be set up for a package that
-exists. Both names stay unscoped, so replacing `effect-delta` with `effect/delta` gives
-the form it would have in Effect.
+exists.
 
 ## First release
 

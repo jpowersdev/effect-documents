@@ -8,10 +8,9 @@ reference. This library targets Effect 4; do not assume Effect 3 names or behavi
   and are not exported. Keep application concepts out of the library.
 - Source imports each module on its own: `import * as Effect from "effect/Effect"`,
   `import * as Delta from "effect-delta/Delta"`. Tests and examples may use the barrels.
-- The library name is the only namespace token: replacing `effect-documents` with
-  `effect/documents` must give the core form of every service key and identifier. It
-  never appears in anything encoded, so stored data outlives a move into Effect. The manifest, `sideEffects`, build and test
-  layout follow a package in the Effect repository; check there before inventing one.
+- The library name never appears in anything encoded, so stored data outlives a rename.
+  The manifest, `sideEffects`, build and test layout follow a package in the Effect
+  repository; check there before inventing one.
 - Follow an Effect precedent for a new concept. Storage follows `effect/cluster`:
   `RunnerStorage` beside `SqlRunnerStorage`, with `make`, `layer`, `layerWith`,
   `layerStorage` and `layerMigrations`.
