@@ -15,7 +15,7 @@
  *
  * **Example** (Editing and reading an earlier version)
  *
- * ```ts
+ * ```ts import.meta.vitest
  * import { Effect, Layer, Option } from "effect"
  * import { Actor, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
  *
@@ -30,10 +30,12 @@
  *     note: "Updated after a paired run.",
  *     command: { _tag: "Edit", oldString: "40 ms", newString: "32 ms" }
  *   })
- *   return yield* documents.read(id, { version: first.version })
+ *   const original = yield* documents.read(id, { version: first.version })
+ *   return original.body
  * })
  *
  * const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
+ * await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => "Clicks take 40 ms."
  * ```
  *
  * @stability unstable

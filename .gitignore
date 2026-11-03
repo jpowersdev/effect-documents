@@ -4,3 +4,6 @@ dist/
 .DS_Store
 .env
 scratchpad/
+site/.docgen/
+site/.astro/
+site/src/content/docs/api/

@@ -30,6 +30,8 @@ cat > "$consumer_dir/package.json" <<'JSON'
   "dependencies": {
     "@jpowersdev/effect-documents": "file:./jpowersdev-effect-documents-0.1.0.tgz",
     "@jpowersdev/effect-delta": "file:./jpowersdev-effect-delta-0.1.0.tgz",
+    "@effect/platform-node": "4.1.1",
+    "@effect/sql-sqlite-node": "4.1.1",
     "effect": "4.1.1"
   }
 }
@@ -63,3 +65,13 @@ node --input-type=module -e '
   const { layerStorage } = await import("@jpowersdev/effect-documents/SqlDocumentStorage")
   assert.equal(typeof layerStorage, "function")
 '
+
+# Every example in the docs and examples/, as a reader would paste it.
+node "$documents_root/scripts/doc-examples.mjs" "$documents_root" "$consumer_dir/examples"
+cp "$documents_root"/examples/*.ts "$consumer_dir/examples/"
+cd "$consumer_dir/examples"
+for example in *.ts; do
+  echo "--- $example"
+  timeout 60 node "$example" > /dev/null || { echo "failed: $example"; exit 1; }
+done
+echo "All examples ran."

@@ -1,4 +1,9 @@
-import { NodeRuntime } from "@effect/platform-node"
+/**
+ * Two people typing while an agent edits the same document.
+ *
+ *   pnpm add @jpowersdev/effect-documents @jpowersdev/effect-delta effect
+ *   node live.ts
+ */
 import { Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
 import { Actor, Collaboration, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
 import { Console, Effect, Layer, Option, Stream } from "effect"
@@ -47,4 +52,4 @@ const CollaborationLive = Collaboration.layer().pipe(
   Layer.provideMerge(DocumentStorage.layerMemory),
   Layer.provideMerge(SecureRandom.layerWebCrypto)
 )
-NodeRuntime.runMain(program.pipe(Effect.scoped, Effect.provide(CollaborationLive)))
+await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(CollaborationLive)))

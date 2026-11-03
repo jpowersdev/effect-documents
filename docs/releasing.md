@@ -27,6 +27,20 @@ Check what would go out first with `pnpm publish --dry-run --no-git-checks` in e
 Both repositories must be public for the links in their manifests to work, though a
 private one doesn't stop a publish.
 
+## Docs sites
+
+Each repository's `.github/workflows/docs.yml` builds its site, and deploys it to GitHub Pages
+from `main` once the repository is public. Deploying from a workflow is a setting, once per
+repository, and then a run:
+
+```sh
+gh api -X POST repos/jpowersdev/effect-delta/pages -f build_type=workflow
+gh workflow run docs.yml -R jpowersdev/effect-delta
+```
+
+effect-documents' site is built from an install, so it needs effect-delta on npm first, with
+the `file:` development dependency replaced by the published version.
+
 ## Later releases
 
 Add a changeset to each change. To publish from CI, add a release workflow and configure

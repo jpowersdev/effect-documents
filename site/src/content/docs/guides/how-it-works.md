@@ -1,4 +1,9 @@
-# How it works
+---
+title: "How it works"
+description: "How revisions, versions and live changes keep their guarantees."
+sidebar:
+  order: 6
+---
 
 ## Revisions
 

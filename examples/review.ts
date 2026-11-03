@@ -1,4 +1,10 @@
-import { NodeRuntime } from "@effect/platform-node"
+/**
+ * A document with an anchored discussion that follows its text through an edit, and an
+ * earlier version read back.
+ *
+ *   pnpm add @jpowersdev/effect-documents @jpowersdev/effect-delta effect
+ *   node review.ts
+ */
 import { Actor, Document, Documents, DocumentStorage, Thread } from "@jpowersdev/effect-documents"
 import { Console, Effect, Layer, Option } from "effect"
 
@@ -29,4 +35,4 @@ const program = Effect.gen(function*() {
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
-NodeRuntime.runMain(program.pipe(Effect.provide(DocumentsLive)))
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))

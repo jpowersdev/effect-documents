@@ -5,8 +5,9 @@ never dependencies, and work here doesn't change them. The API is unstable until
 first integrations settle the contract. Do not publish or commit unless asked;
 `docs/releasing.md` has the steps.
 
-Read `README.md` for the public contract, `docs/design.md` for how its guarantees are
-kept, and `docs/conventions.md` before changing Effect code.
+Read `README.md` and the guides in `site/src/content/docs/guides/` for the public contract,
+`how-it-works.md` there for how its guarantees are kept, and `docs/conventions.md` before
+changing Effect code.
 
 ## Layout
 
@@ -19,6 +20,9 @@ kept, and `docs/conventions.md` before changing Effect code.
   outside this repository by the package check.
 - `typetest/`: compiler behavior of the public API, with tstyche.
 - `examples/`: type-checked consumer examples.
+- `site/`: the docs site. Guides are written by hand and the API reference is generated from
+  doc comments (`pnpm docs:build`). `pnpm doctest` runs every example in the guides, the README
+  and doc comments, and `pnpm pack-check` runs them again against the packed library.
 - `scripts/pack-check.sh`: builds and packs the library and effect-delta, installs
   them in an isolated consumer, checks NodeNext types and runs the JavaScript.
 
@@ -33,7 +37,7 @@ Use pnpm from this repository. `pnpm test` runs once, never in watch mode.
 
 - Source or types: `pnpm check`, `pnpm test`, `pnpm test-types`, `pnpm lint`.
 - Package exports or dependencies: also `pnpm build` and `pnpm pack-check`.
-- Documentation only: `pnpm lint`; type-check changed examples.
+- Documentation only: `pnpm lint`, `pnpm doctest` and `pnpm docs:build`.
 - Before a requested commit: run all of the above and report any unavailable check.
 
 A consumer's concepts don't belong here. If an integration seems to need one, find the

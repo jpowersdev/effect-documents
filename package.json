@@ -56,12 +56,16 @@
   "scripts": {
     "check": "tsc -p tsconfig.json",
     "test": "vitest run",
+    "doctest": "vitest run --config vitest.docs.ts",
     "test-types": "tstyche",
     "build": "tsc -p tsconfig.build.json && pnpm babel",
     "babel": "babel dist --plugins annotate-pure-calls --out-dir dist --source-maps",
     "prepack": "pnpm build",
     "lint": "oxlint && dprint check",
     "lint-fix": "oxlint --fix && dprint fmt",
+    "docgen": "docgen",
+    "docs:dev": "pnpm docgen && pnpm --filter ./site dev",
+    "docs:build": "pnpm docgen && pnpm --filter ./site build",
     "prepare": "effect-tsgo patch --typescript",
     "pack-check": "bash scripts/pack-check.sh"
   },
@@ -74,6 +78,8 @@
     "@babel/core": "8.0.7",
     "@changesets/changelog-github": "1.0.1",
     "@changesets/cli": "3.0.3",
+    "@effect/docgen": "4.1.1",
+    "@effect/doctest": "4.1.1",
     "@effect/platform-node": "4.1.1",
     "@effect/sql-d1": "4.1.1",
     "@effect/sql-pglite": "4.1.1",
@@ -88,7 +94,9 @@
     "miniflare": "5.20260925.0-alpha",
     "oxlint": "1.87.0",
     "tstyche": "7.2.5",
+    "tsx": "4.23.15",
     "typescript": "7.0.2",
+    "vite": "8.3.5",
     "vitest": "5.0.3"
   },
   "devEngines": {

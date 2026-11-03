@@ -11,8 +11,10 @@ pnpm test
 pnpm test-types
 pnpm lint
 pnpm build
+pnpm doctest
+pnpm docs:build
 pnpm pack-check
 ```
 
 `pack-check` installs the packed library in a temporary consumer, type-checks it under NodeNext and runs it with only its
-peers. [`releasing.md`](releasing.md) has the release steps.
+peers, then runs every example in the docs and `examples/` there with Node.js alone. [`releasing.md`](releasing.md) has the release steps.

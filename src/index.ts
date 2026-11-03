@@ -1,4 +1,7 @@
 /**
+ * Versioned Markdown documents with attributed history, anchored review and live
+ * editing, built on Effect and effect-delta.
+ *
  * @stability unstable
  * @since 0.1.0
  */

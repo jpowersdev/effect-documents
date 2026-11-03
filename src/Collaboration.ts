@@ -14,9 +14,10 @@
  *
  * **Example** (Two people typing while an agent edits)
  *
- * ```ts
+ * ```ts import.meta.vitest
  * import { Effect, Layer, Option, Stream } from "effect"
- * import { Authority, Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
+ * import { SecureRandom } from "effect/crypto"
+ * import { Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
  * import { Actor, Collaboration, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
  *
  * const program = Effect.gen(function*() {
@@ -30,11 +31,21 @@
  *   )
  *   yield* ReplicatedText.changes(client).pipe(Stream.filter((text) => text.length > 0), Stream.runHead)
  *   yield* ReplicatedText.insert(client, 0, "Draft: ")
+ *   yield* client.connection.unconfirmed.pipe(Stream.filter((count) => count === 0), Stream.runHead)
  *
- *   yield* documents.apply({ id, actor: agent, command: { _tag: "Edit", oldString: "24", newString: "8" } })
+ *   const edited = yield* documents.apply({
+ *     id,
+ *     actor: agent,
+ *     command: { _tag: "Edit", oldString: "24", newString: "8" }
+ *   })
+ *   return edited.body
  * })
  *
- * const CollaborationLive = Collaboration.layer().pipe(Layer.provide(DocumentStorage.layerMemory))
+ * const CollaborationLive = Collaboration.layer().pipe(
+ *   Layer.provideMerge(DocumentStorage.layerMemory),
+ *   Layer.provideMerge(SecureRandom.layerWebCrypto)
+ * )
+ * await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(CollaborationLive))) // => "Draft: Sessions last 8 hours."
  * ```
  *
  * @stability unstable

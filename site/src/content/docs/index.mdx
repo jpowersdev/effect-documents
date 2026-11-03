@@ -1,0 +1,65 @@
+---
+title: effect-documents
+description: Versioned Markdown documents with attributed history, anchored review and live editing, for Effect.
+template: splash
+hero:
+  tagline: Versioned Markdown documents for Effect
+  image:
+    file: ../../assets/logo.svg
+  actions:
+    - text: Get started
+      link: getting-started/
+      icon: right-arrow
+    - text: API reference
+      link: api/
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkButton } from "@astrojs/starlight/components"
+
+```ts import.meta.vitest
+import { Actor, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
+import { Effect, Layer, Option } from "effect"
+
+const program = Effect.gen(function*() {
+  const documents = yield* Documents.Documents
+  const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
+  const id = Document.Id.make("performance-map")
+
+  const first = yield* documents.create({ id, actor, title: "Performance map", body: "Clicks take 40 ms." })
+  yield* documents.apply({ id, actor, command: { _tag: "Edit", oldString: "40 ms", newString: "32 ms" } })
+
+  // The current text, and any earlier version
+  const now = yield* documents.read(id)
+  const then = yield* documents.read(id, { version: first.version })
+  return [now.body, then.body]
+})
+
+const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
+
+const bodies = await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => ["Clicks take 32 ms.", "Clicks take 40 ms."]
+console.log(bodies)
+```
+
+<CardGrid>
+  <Card title="Attributed history" icon="document">
+    Every successful command appends one immutable revision, crediting who ran it. Any version can be read back.
+
+    <LinkButton href="guides/commands/" variant="minimal" icon="right-arrow">Commands</LinkButton>
+  </Card>
+  <Card title="Anchored review" icon="comment">
+    Discussions attach to the text they're about, and follow it through later edits.
+
+    <LinkButton href="guides/commands/#discuss-a-passage" variant="minimal" icon="right-arrow">Discussions</LinkButton>
+  </Card>
+  <Card title="Live editing" icon="random">
+    People type at once while agents run commands, and the changes join the history.
+
+    <LinkButton href="guides/live-editing/" variant="minimal" icon="right-arrow">Live editing</LinkButton>
+  </Card>
+  <Card title="Your database" icon="seti:db">
+    SQLite, D1 and PostgreSQL, and a revision can commit atomically with your own tables.
+
+    <LinkButton href="guides/storage/" variant="minimal" icon="right-arrow">Storage</LinkButton>
+  </Card>
+</CardGrid>
