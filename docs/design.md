@@ -1,6 +1,4 @@
-# Design
-
-How the library keeps the guarantees in the README.
+# How it works
 
 ## Revisions
 

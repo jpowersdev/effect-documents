@@ -2,8 +2,8 @@
 
 effect-documents needs effect-delta on the registry first. The first release of each
 is by hand, because npm's trusted publishing can only be set up for a package that
-exists. Both names are unscoped on purpose: see "The library name is the only namespace
-token" in effect-delta's `docs/research/effect-fit.md`.
+exists. Both names stay unscoped, so replacing `effect-delta` with `effect/delta` gives
+the form it would have in Effect.
 
 ## First release
 
@@ -28,20 +28,8 @@ Check what would go out first with `pnpm publish --dry-run --no-git-checks` in e
 Both repositories must be public for the links in their manifests to work, though a
 private one doesn't stop a publish.
 
-## Using a release
-
-Replace the `file:` development dependency with the released version, and run the checks.
-A consumer with a minimum release age needs the new versions in its
-`minimumReleaseAgeExclude`:
-
-```yaml
-minimumReleaseAgeExclude:
-  - "effect-delta@0.1.0"
-  - "effect-documents@0.1.0"
-```
-
 ## Later releases
 
-Add a changeset to each change. To publish from CI, copy `effect-agent`'s
-`.github/workflows/release.yml` and configure trusted publishing on npm; a public
-repository then gets provenance without any flag in `publishConfig`.
+Add a changeset to each change. To publish from CI, add a release workflow and configure
+trusted publishing on npm; a public repository then gets provenance without any flag in
+`publishConfig`.
