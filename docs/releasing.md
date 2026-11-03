@@ -38,8 +38,8 @@ gh api -X POST repos/jpowersdev/effect-delta/pages -f build_type=workflow
 gh workflow run docs.yml -R jpowersdev/effect-delta
 ```
 
-effect-documents' site is built from an install, so it needs effect-delta on npm first, with
-the `file:` development dependency replaced by the published version.
+effect-documents' workflow clones effect-delta beside its checkout, for its `file:` development
+dependency.
 
 ## Later releases
 
