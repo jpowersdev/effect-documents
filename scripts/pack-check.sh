@@ -30,7 +30,7 @@ cat > "$consumer_dir/package.json" <<'JSON'
   "dependencies": {
     "@jpowersdev/effect-documents": "file:./jpowersdev-effect-documents-0.1.0.tgz",
     "@jpowersdev/effect-delta": "file:./jpowersdev-effect-delta-0.1.0.tgz",
-    "effect": "4.0.6"
+    "effect": "4.1.1"
   }
 }
 JSON

@@ -54,6 +54,7 @@
           "processEnv": "error",
           "processEnvInEffect": "error",
           "schemaSync": "error",
+          "schemaClassMissingBrand": "off",
           "schemaUnionOfLiterals": "error",
           "serviceNotAsClass": "error",
           "strictEffectProvide": "error",
@@ -79,7 +80,7 @@
               "allowedUnstableApis": [
                 "@jpowersdev/effect-delta",
                 "@jpowersdev/effect-documents",
-                "effect/Crypto",
+                "effect/crypto",
                 "effect/http",
                 "effect/net",
                 "effect/rpc",
@@ -106,7 +107,7 @@
         "allowedUnstableApis": [
           "@jpowersdev/effect-delta",
           "@jpowersdev/effect-documents",
-          "effect/Crypto",
+          "effect/crypto",
           "effect/sql"
         ],
         "allowedExperimentalApis": [

@@ -47,7 +47,7 @@ import * as Replica from "@jpowersdev/effect-delta/Replica"
 import * as ReplicatedText from "@jpowersdev/effect-delta/ReplicatedText"
 import * as Sync from "@jpowersdev/effect-delta/Sync"
 import * as Context from "effect/Context"
-import type * as Crypto from "effect/Crypto"
+import type * as SecureRandom from "effect/crypto/SecureRandom"
 import type * as Duration from "effect/Duration"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
@@ -196,12 +196,12 @@ export const layer = <R = never>(options?: {
 }): Layer.Layer<
   Collaboration | Documents.Documents | Authority.Authority,
   never,
-  DocumentStorage.DocumentStorage | Crypto.Crypto | R
+  DocumentStorage.DocumentStorage | SecureRandom.SecureRandom | R
 > =>
   Layer.effectContext(Effect.gen(function*() {
     const storage = yield* DocumentStorage.DocumentStorage
     const check = options?.check
-    const context = yield* Effect.context<Crypto.Crypto>()
+    const context = yield* Effect.context<SecureRandom.SecureRandom>()
     const server = Context.get(
       yield* Layer.build(
         Authority.layer<R>({

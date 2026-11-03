@@ -1,12 +1,11 @@
 import { Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
 import { Actor, Collaboration, Document, Documents, DocumentStorage, SqlDocumentStorage } from "@jpowersdev/effect-documents"
-import * as Crypto from "effect/Crypto"
+import * as SecureRandom from "effect/crypto/SecureRandom"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 import * as Option from "effect/Option"
 import * as Stream from "effect/Stream"
 import assert from "node:assert/strict"
-import { randomBytes } from "node:crypto"
 import { DatabaseSync } from "node:sqlite"
 
 assert.equal(typeof SqlDocumentStorage.layerStorage, "function")
@@ -27,13 +26,9 @@ await Effect.runPromise(Effect.gen(function*() {
 }).pipe(Effect.provide(Live)))
 
 // Someone typing while a command runs, with nothing but the published peers.
-const Secure = Layer.succeed(Crypto.Crypto)(Crypto.make({
-  randomBytes: (size) => new Uint8Array(randomBytes(size)),
-  digest: () => Effect.die("unused")
-}))
 const LiveTogether = Collaboration.layer().pipe(
   Layer.provideMerge(DocumentStorage.layerMemory),
-  Layer.provideMerge(Secure)
+  Layer.provideMerge(SecureRandom.layerWebCrypto)
 )
 
 await Effect.runPromise(Effect.gen(function*() {

@@ -8,7 +8,7 @@ change in any minor release.
 pnpm add @jpowersdev/effect-documents @jpowersdev/effect-delta effect
 ```
 
-`effect` is a peer dependency, `~4.0.6`, and `@jpowersdev/effect-delta` one at `^0.1.0`.
+`effect` is a peer dependency, `^4.1.1`, and `@jpowersdev/effect-delta` one at `^0.1.0`.
 
 ## Use
 
@@ -104,12 +104,13 @@ oldest first, without content. `remove(id)` deletes a document and its whole his
 ## Live editing
 
 `Collaboration.layer` replaces `Documents.layer` where people edit at the same time. It also provides `Documents`, so
-commands keep working, and an effect-delta `Authority` for clients to sync through.
+commands keep working, and an effect-delta `Authority` for clients to sync through. It needs `SecureRandom` from `effect/crypto`; plain
+`Documents` doesn't.
 [`examples/live.ts`](examples/live.ts) is a complete run.
 
 ```ts
-import { NodeCrypto } from "@effect/platform-node"
 import { Authority, Sync } from "@jpowersdev/effect-delta"
+import { SecureRandom } from "effect/crypto"
 import { RpcServer } from "effect/rpc"
 
 // One instance for all of a document's writers.
@@ -117,7 +118,7 @@ const Live = Collaboration.layer({
   // Optional: decide whether a live change is accepted.
   check: ({ user }) =>
     canEdit(user) ? Effect.void : Effect.fail(new Authority.Rejected({ message: "Read only" }))
-}).pipe(Layer.provide(SqlDocumentStorage.layerStorage({})), Layer.provide(NodeCrypto.layer))
+}).pipe(Layer.provide(SqlDocumentStorage.layerStorage({})), Layer.provide(SecureRandom.layerWebCrypto))
 
 // Serve it over any RPC protocol, saying who's connecting and what they may do.
 const Server = RpcServer.layer(Sync.Rpcs).pipe(
@@ -158,7 +159,7 @@ runtime.runFork(httpEffect.pipe(Effect.provideService(HttpServerRequest.HttpServ
 return new Response(null, { status: 101, webSocket: client })
 ```
 
-Provide `Crypto` with `Crypto.make` over `crypto.getRandomValues`. These sockets don't hibernate, so an object stays in
+Provide `SecureRandom.layerWebCrypto`. These sockets don't hibernate, so an object stays in
 memory while anyone is connected. Timers don't survive eviction, but nothing is lost: staged changes wait for the next
 visitor, or call `checkpoint` from an alarm.
 
@@ -235,8 +236,6 @@ An interrupted commit may still have landed, as with any database write, so read
 
 ## Limits
 
-- **Effect `~4.0.6`.** effect-delta imports `effect/Crypto`, which Effect 4.1 moved. `Collaboration` needs a `Crypto`
-  service; plain `Documents` doesn't.
 - **One writer process per document**, such as one Durable Object per document. Compare-and-append protects revisions
   from a second process, but not clients from each other.
 - **Plain text.** The body is one string. Formatting and undo aren't built.

@@ -1,7 +1,8 @@
-import { NodeCrypto, NodeHttpServer, NodeSocket } from "@effect/platform-node"
+import { NodeHttpServer, NodeSocket } from "@effect/platform-node"
 import { SqliteClient } from "@effect/sql-sqlite-node"
 import { assert, describe, it } from "@effect/vitest"
-import { Authority, Delta, Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
+import { Authority, Delta, Replica, ReplicatedText, Sync, TextPatch } from "@jpowersdev/effect-delta"
+import { SecureRandom } from "effect/crypto"
 import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
 import * as Fiber from "effect/Fiber"
@@ -38,7 +39,7 @@ const thread = Thread.Id.make("question")
 
 const Stored = DocumentStorage.layerMemory
 // Collaboration over whatever store is around, so a test can keep or change it.
-const Session = Collaboration.layer().pipe(Layer.provideMerge(NodeCrypto.layer))
+const Session = Collaboration.layer().pipe(Layer.provideMerge(SecureRandom.layerWebCrypto))
 const Live = Session.pipe(Layer.provideMerge(Stored))
 
 const start = Effect.flatMap(
@@ -160,7 +161,7 @@ describe("Collaboration", () => {
           Effect.scoped,
           Effect.provide(
             Collaboration.layer({ idle: "5 seconds", every: "50 seconds" }).pipe(
-              Layer.provideMerge(NodeCrypto.layer)
+              Layer.provideMerge(SecureRandom.layerWebCrypto)
             )
           ),
           noticing("Merge", merged)
@@ -366,7 +367,7 @@ describe("Collaboration", () => {
               user === "@reviewer"
                 ? Effect.fail(new Authority.Rejected({ message: "Reviewers can comment but not edit" }))
                 : Effect.void
-          }).pipe(Layer.provideMerge(Stored), Layer.provideMerge(NodeCrypto.layer))
+          }).pipe(Layer.provideMerge(Stored), Layer.provideMerge(SecureRandom.layerWebCrypto))
         )
       ))
 
@@ -382,7 +383,7 @@ describe("Collaboration", () => {
         Effect.provide(
           Collaboration.layer({
             check: () => Effect.fail(new Authority.Rejected({ message: "Nobody edits live" }))
-          }).pipe(Layer.provideMerge(Stored), Layer.provideMerge(NodeCrypto.layer))
+          }).pipe(Layer.provideMerge(Stored), Layer.provideMerge(SecureRandom.layerWebCrypto))
         )
       ))
 
@@ -573,7 +574,7 @@ describe("Collaboration", () => {
     const over = <E>(client: Layer.Layer<SqlClient.SqlClient, E>) =>
       Collaboration.layer().pipe(
         Layer.provideMerge(SqlDocumentStorage.layer.pipe(Layer.orDie)),
-        Layer.provideMerge(NodeCrypto.layer),
+        Layer.provideMerge(SecureRandom.layerWebCrypto),
         Layer.provide(client.pipe(Layer.orDie))
       )
 
@@ -720,17 +721,21 @@ describe("Collaboration", () => {
             for (const step of steps) {
               switch (step._tag) {
                 case "Type": {
-                  const client = clients[step.client]!
-                  const { length } = yield* ReplicatedText.get(client)
-                  yield* ReplicatedText.insert(client, Math.floor(step.at * (length + 1) / 1001), step.text)
+                  // Worked out from the text under the replica's lock: others' changes land at any moment.
+                  yield* ReplicatedText.modify(clients[step.client]!, ({ length }) => [
+                    undefined,
+                    TextPatch.insert(Math.floor(step.at * (length + 1) / 1001), step.text)
+                  ])
                   break
                 }
                 case "Delete": {
-                  const client = clients[step.client]!
-                  const { length } = yield* ReplicatedText.get(client)
-                  if (length === 0) break
-                  const index = Math.floor(step.at * length / 1001)
-                  yield* ReplicatedText.remove(client, index, Math.min(step.length, length - index))
+                  yield* ReplicatedText.modify(clients[step.client]!, ({ length }) => {
+                    const index = Math.floor(step.at * length / 1001)
+                    return [
+                      undefined,
+                      length === 0 ? TextPatch.empty : TextPatch.remove(index, Math.min(step.length, length - index))
+                    ]
+                  })
                   break
                 }
                 case "Edit":

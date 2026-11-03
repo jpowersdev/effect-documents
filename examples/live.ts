@@ -1,7 +1,8 @@
-import { NodeCrypto, NodeRuntime } from "@effect/platform-node"
+import { NodeRuntime } from "@effect/platform-node"
 import { Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
 import { Actor, Collaboration, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
 import { Console, Effect, Layer, Option, Stream } from "effect"
+import { SecureRandom } from "effect/crypto"
 
 const id = Document.Id.make("spec")
 const agent: Actor.Actor = { by: Actor.Id.make("@agent"), via: Option.none() }
@@ -44,6 +45,6 @@ const program = Effect.gen(function*() {
 
 const Live = Collaboration.layer().pipe(
   Layer.provideMerge(DocumentStorage.layerMemory),
-  Layer.provideMerge(NodeCrypto.layer)
+  Layer.provideMerge(SecureRandom.layerWebCrypto)
 )
 NodeRuntime.runMain(program.pipe(Effect.scoped, Effect.provide(Live)))

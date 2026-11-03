@@ -2,7 +2,7 @@ import type { Authority } from "@jpowersdev/effect-delta"
 import type { Document } from "@jpowersdev/effect-documents"
 import { Collaboration, Documents, DocumentStorage, SqlDocumentStorage } from "@jpowersdev/effect-documents"
 import type { Effect, Layer, Schema } from "effect"
-import type { Crypto } from "effect/Crypto"
+import type { SecureRandom } from "effect/crypto/SecureRandom"
 import type { SqlClient } from "effect/sql/SqlClient"
 import type { SqlError } from "effect/sql/SqlError"
 import { describe, expect, it } from "tstyche"
@@ -37,12 +37,12 @@ describe("Documents", () => {
 })
 
 describe("Collaboration", () => {
-  it("provides everything a document's writers go through, and needs storage and Crypto", () => {
+  it("provides everything a document's writers go through, and needs storage and SecureRandom", () => {
     expect(Collaboration.layer()).type.toBe<
       Layer.Layer<
         Collaboration.Collaboration | Documents.Documents | Authority.Authority,
         never,
-        DocumentStorage.DocumentStorage | Crypto
+        DocumentStorage.DocumentStorage | SecureRandom
       >
     >()
   })
