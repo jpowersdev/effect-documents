@@ -11,21 +11,19 @@ Both packages are at `0.1.0`, which their `@since` tags name, so no changeset is
 From a machine logged in to npm, with both repositories on their release commits:
 
 ```sh
-# effect-delta. Its script builds with stripInternal, which edits tsconfig.base.json.
+# Each builds as it packs.
 cd effect-delta
 pnpm install --frozen-lockfile --ignore-scripts
 pnpm exec effect-tsgo patch
-pnpm changeset-publish
-git checkout tsconfig.base.json
+pnpm publish
 
-# effect-documents, which builds as it packs.
 cd ../effect-documents
 pnpm install --frozen-lockfile --ignore-scripts
 pnpm exec effect-tsgo patch --typescript
 pnpm publish
 ```
 
-Check what would go out first with `pnpm publish --dry-run --no-git-checks` in each package.
+Check what would go out first with `pnpm publish --dry-run --no-git-checks` in each repository.
 
 Both repositories must be public for the links in their manifests to work, though a
 private one doesn't stop a publish.

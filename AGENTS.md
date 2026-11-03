@@ -5,8 +5,8 @@ never dependencies, and work here doesn't change them. The API is unstable until
 first integrations settle the contract. Do not publish or commit unless asked;
 `docs/releasing.md` has the steps.
 
-Read `README.md` for the public contract and storage guarantees, and
-`docs/conventions.md` before changing Effect code.
+Read `README.md` for the public contract, `docs/design.md` for how its guarantees are
+kept, and `docs/conventions.md` before changing Effect code.
 
 ## Layout
 
@@ -25,7 +25,7 @@ Read `README.md` for the public contract and storage guarantees, and
   them in an isolated consumer, checks NodeNext types and runs the JavaScript.
 
 The local effect-delta development dependency is a directory package at
-`../effect-delta/packages/delta`. Use `file:`, not `link:`, so its Effect peer resolves
+`../effect-delta`. Use `file:`, not `link:`, so its Effect peer resolves
 to the same runtime. The packed library depends on ordinary peers, not that path. A
 worktree whose parent has no `effect-delta` needs a symlink there before installing.
 

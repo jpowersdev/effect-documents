@@ -1,10 +1,14 @@
 # effect-documents
 
 Versioned Markdown documents with attributed history, anchored review and live editing, built on
-[Effect](https://effect.website) and effect-delta.
+[Effect](https://effect.website) and [effect-delta](https://github.com/jpowersdev/effect-delta). Unstable: the API may
+change in any minor release.
 
-It owns text, its history and the discussions anchored to it. The application around it owns everything else. The API
-is unstable until its first integration settles it.
+```sh
+pnpm add effect-documents effect-delta effect
+```
+
+`effect` is a peer dependency, `~4.0.6`, and `effect-delta` one at `^0.1.0`.
 
 ## Use
 
@@ -65,9 +69,8 @@ history unchanged, and invalid input fails with a `SchemaError`.
 | `Resolve` | Closes a discussion                                        | Yes             | `Conflict` if the discussion has moved on, `ThreadNotFound` |
 | `Reopen`  | Opens a resolved discussion again                          | No              | `ThreadNotFound`                                            |
 
-- **Versions.** `Update` and `Restore` could undo work their caller never saw, so a stale version fails. `Resolve`
-  fails only over a reply its caller hasn't seen; the text changing doesn't matter to it. Other commands apply to the
-  current text, and are worked out again from it if another writer gets in first.
+- **Versions.** `Update` and `Restore` fail on a stale version. `Resolve` fails only over a reply its caller hasn't seen.
+  Other commands apply to the current text.
 - **Anchors** follow their original characters. `Edit` keeps the characters between matches, and `Update` diffs by line
   and keeps the common start and end of each changed region, so anchors on unchanged text survive. A very large change
   becomes one replacement, losing the anchors inside it. When every anchored character is deleted, the range becomes
@@ -133,8 +136,6 @@ yield* ReplicatedText.insert(text, 0, "Draft: ")
 - **History.** Staged changes become one `Merge` revision crediting everyone in them. That happens after a pause (`idle`,
   five seconds), at least every minute (`every`), before any command, when a document is released, and when a `read`
   finds some. `Collaboration.checkpoint` does it on demand.
-- **Commands.** Gathering first keeps a command's revision to itself, plus any change that arrives while it runs, whose
-  author it credits too.
 - **Conflicting edits** merge but can read badly: "24 hours" changed to "8 hours" and to "12 hours" at once gives
   "812 hours". `ReplicatedText.subscribe` reports each such overlap, so an editor can point it out.
 - **Presence**, meaning who's here and their selections, is effect-delta's `Presence` module. Merge `Presence.Rpcs` with
@@ -165,17 +166,9 @@ This has run under workerd on D1, but not on Cloudflare itself.
 
 ## Storage
 
-Each revision stores its history entry, the materialized document and only the text changes it introduced, so reading
-any version decodes one record, and no record grows with the ones before it. Only commands that change the text or place
-an anchor rebuild the text's history, in a private replica that a failed commit can't leak into later reads.
-
-Live changes wait as staged changes until they join a revision, alongside which user each replica belongs to. A revision
-and the staged changes it holds aren't committed together, because holding a change in both places does no harm.
-
 ### `SqlDocumentStorage`
 
-Works on SQLite (including D1) and PostgreSQL. An append is one statement, because D1 has no transactions, only atomic
-batches. It fails unless the document is at the previous version, so an atomic group it joins rolls back with it.
+Works on SQLite (including D1) and PostgreSQL.
 
 ```ts
 // Create the tables on startup...
@@ -254,21 +247,10 @@ An interrupted commit may still have landed, as with any database write, so read
 - **Live editing on PostgreSQL** is untested, and racing writers there are tested only on PGlite, which has one
   connection.
 
-## Local development
+## Development
 
-Development expects an effect-delta checkout beside this one, used as a directory package (`file:`, not `link:`) so both
-share one Effect runtime. Reinstall after changing it.
+See [`docs/development.md`](docs/development.md).
 
-```sh
-pnpm install --ignore-scripts
-pnpm exec effect-tsgo patch --typescript
-pnpm check
-pnpm test
-pnpm test-types
-pnpm lint
-pnpm build
-pnpm pack-check
-```
+## License
 
-`pack-check` installs the packed library in a temporary consumer, type-checks it under NodeNext and runs it with only its
-peers. [`docs/releasing.md`](docs/releasing.md) has the release steps.
+MIT

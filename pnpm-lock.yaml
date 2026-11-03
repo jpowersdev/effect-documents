@@ -243,8 +243,8 @@ importers:
         specifier: 4.0.6
         version: 4.0.6
       effect-delta:
-        specifier: file:../effect-delta/packages/delta
-        version: file:../effect-delta/packages/delta(effect@4.0.6)
+        specifier: file:../effect-delta
+        version: file:../effect-delta(effect@4.0.6)
       miniflare:
         specifier: 5.20260925.0-alpha
         version: 5.20260925.0-alpha(@types/node@24.19.2)
@@ -1294,8 +1294,8 @@ packages:
     resolution: {integrity: sha512-0zPR3nd5CYgam112KyPGHrE2qSmfi9GrnVQGjRwxyilTCkixSTDYQigsJrx7J41ohpuj6l5LRTTB8wHnXRorOg==}
     hasBin: true
 
-  effect-delta@file:../effect-delta/packages/delta:
-    resolution: {directory: ../effect-delta/packages/delta, type: directory}
+  effect-delta@file:../effect-delta:
+    resolution: {directory: ../effect-delta, type: directory}
     peerDependencies:
       effect: ~4.0.4
 
@@ -2558,7 +2558,7 @@ snapshots:
       '@dprint/win32-arm64': 0.60.1
       '@dprint/win32-x64': 0.60.1
 
-  effect-delta@file:../effect-delta/packages/delta(effect@4.0.6):
+  effect-delta@file:../effect-delta(effect@4.0.6):
     dependencies:
       effect: 4.0.6
 
