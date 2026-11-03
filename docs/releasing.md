@@ -43,6 +43,10 @@ dependency.
 
 ## Later releases
 
-Add a changeset to each change. To publish from CI, add a release workflow and configure
-trusted publishing on npm; a public repository then gets provenance without any flag in
-`publishConfig`.
+Add a changeset to each change. Merging one opens a "Version Packages" pull request, and merging that publishes from
+`.github/workflows/release.yml` with trusted publishing, which gives a public repository provenance without any flag in
+`publishConfig`. Set it up once per package, after its first release, under the package's settings on npmjs.com: the
+repository, and `release.yml` as the workflow.
+
+A `CHANGESET_GITHUB_TOKEN` secret, with access to the repository's contents and pull requests, makes the pull request run
+CI. Without one it's opened with the default token, and gets no checks.
