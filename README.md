@@ -42,13 +42,14 @@ const program = Effect.gen(function*() {
   })
   const now = yield* documents.read(id)
   const original = yield* documents.read(id, { version: first.version })
-  return [now.body, original.body]
+  const bodies = [now.body, original.body]
+  yield* Effect.log(bodies)
+  return bodies
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
 
-const bodies = await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => ["Clicks take 32 ms.", "Clicks take 40 ms."]
-console.log(bodies)
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => ["Clicks take 32 ms.", "Clicks take 40 ms."]
 ```
 
 The [documentation](https://jpowersdev.github.io/effect-documents/) has guides and the API reference, and

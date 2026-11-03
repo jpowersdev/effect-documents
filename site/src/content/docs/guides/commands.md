@@ -38,7 +38,7 @@ const program = Effect.gen(function*() {
   yield* documents.apply({ id, actor, command: { _tag: "Edit", oldString: "24", newString: "8" } })
 
   // Named a version that's no longer current
-  return yield* documents.apply({
+  const result = yield* documents.apply({
     id,
     actor,
     command: { _tag: "Update", version: first.version, body: "Sessions never end." }
@@ -46,12 +46,13 @@ const program = Effect.gen(function*() {
     Effect.map(() => "Updated"),
     Effect.catchReason("DocumentStorageError", "Conflict", () => Effect.succeed("Someone else got there first"))
   )
+  yield* Effect.log(result)
+  return result
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
 
-const result = await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => "Someone else got there first"
-console.log(result)
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => "Someone else got there first"
 ```
 
 ## Discuss a passage
@@ -87,13 +88,14 @@ const program = Effect.gen(function*() {
     command: { _tag: "Edit", oldString: "Clicks take", newString: "On Chromium, clicks take" }
   })
   const range = Option.getOrThrow(edited.threads[0]!.range)
-  return edited.body.slice(range.start, range.end)
+  const quoted = edited.body.slice(range.start, range.end)
+  yield* Effect.log(quoted)
+  return quoted
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
 
-const quoted = await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => "40 ms"
-console.log(quoted)
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => "40 ms"
 ```
 
 ## Attribution

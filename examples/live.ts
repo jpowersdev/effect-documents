@@ -6,7 +6,7 @@
  */
 import { Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
 import { Actor, Collaboration, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
-import { Console, Effect, Layer, Option, Stream } from "effect"
+import { Effect, Layer, Option, Stream } from "effect"
 import { SecureRandom } from "effect/crypto"
 
 const id = Document.Id.make("spec")
@@ -41,11 +41,11 @@ const program = Effect.gen(function*() {
     actor: agent,
     command: { _tag: "Edit", oldString: "24", newString: "8" }
   })
-  yield* Console.log(edited.body)
+  yield* Effect.log(edited.body)
 
   // [ "Create by @agent", "Merge by @ada, @ben", "Edit by @agent" ]
   const history = yield* documents.history(id)
-  yield* Console.log(history.map(({ action, actors }) => `${action} by ${actors.map(({ by }) => by).join(", ")}`))
+  yield* Effect.log(history.map(({ action, actors }) => `${action} by ${actors.map(({ by }) => by).join(", ")}`))
 })
 
 const CollaborationLive = Collaboration.layer().pipe(

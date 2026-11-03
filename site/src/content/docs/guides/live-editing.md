@@ -46,7 +46,9 @@ const program = Effect.gen(function*() {
   yield* documents.apply({ id, actor: agent, command: { _tag: "Edit", oldString: "24", newString: "8" } })
 
   const history = yield* documents.history(id)
-  return history.map(({ action, actors }) => `${action} by ${actors.map(({ by }) => by).join(", ")}`)
+  const entries = history.map(({ action, actors }) => `${action} by ${actors.map(({ by }) => by).join(", ")}`)
+  yield* Effect.log(entries)
+  return entries
 })
 
 const CollaborationLive = Collaboration.layer().pipe(
@@ -54,8 +56,7 @@ const CollaborationLive = Collaboration.layer().pipe(
   Layer.provideMerge(SecureRandom.layerWebCrypto)
 )
 
-const history = await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(CollaborationLive))) // => ["Create by @agent", "Merge by @ada, @ben", "Edit by @agent"]
-console.log(history)
+await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(CollaborationLive))) // => ["Create by @agent", "Merge by @ada, @ben", "Edit by @agent"]
 ```
 
 ## Over a network
@@ -130,11 +131,12 @@ const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
   yield* documents.create({ id, actor: agent, title: "Spec", body: "Sessions last 24 hours." })
   yield* typing
-  return (yield* documents.read(id)).body
+  const body = (yield* documents.read(id)).body
+  yield* Effect.log(body)
+  return body
 })
 
-const body = await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(ServerLive))) // => "Draft: Sessions last 24 hours."
-console.log(body)
+await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(ServerLive))) // => "Draft: Sessions last 24 hours."
 ```
 
 The server and client share a process here so the example runs by itself.

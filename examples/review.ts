@@ -6,7 +6,7 @@
  *   node review.ts
  */
 import { Actor, Document, Documents, DocumentStorage, Thread } from "@jpowersdev/effect-documents"
-import { Console, Effect, Layer, Option } from "effect"
+import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
@@ -30,8 +30,8 @@ const program = Effect.gen(function*() {
     note: "Updated after a paired run.",
     command: { _tag: "Edit", oldString: "40 ms", newString: "32 ms in the Chromium fixture" }
   })
-  yield* Console.log(third.body)
-  yield* Console.log((yield* documents.read(id, { version: first.version })).body)
+  yield* Effect.log(third.body)
+  yield* Effect.log((yield* documents.read(id, { version: first.version })).body)
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
