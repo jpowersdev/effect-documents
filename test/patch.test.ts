@@ -1,5 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
-import { TextPatch } from "effect-delta"
+import { TextPatch } from "@jpowersdev/effect-delta"
 import * as Schema from "effect/Schema"
 import * as InternalPatch from "../src/internal/patch.ts"
 

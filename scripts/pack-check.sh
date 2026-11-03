@@ -6,13 +6,13 @@ delta_root="${EFFECT_DELTA_ROOT:-$documents_root/../effect-delta}"
 consumer_dir="$(mktemp -d "${TMPDIR:-/tmp}/effect-documents.XXXXXX")"
 trap 'rm -rf "$consumer_dir"' EXIT
 
-pnpm --dir "$delta_root" --filter effect-delta build
-pnpm --dir "$delta_root" --filter effect-delta pack --pack-destination "$consumer_dir"
-pnpm --dir "$documents_root" --filter effect-documents build
-pnpm --dir "$documents_root" --filter effect-documents pack --pack-destination "$consumer_dir"
+pnpm --dir "$delta_root" --filter @jpowersdev/effect-delta build
+pnpm --dir "$delta_root" --filter @jpowersdev/effect-delta pack --pack-destination "$consumer_dir"
+pnpm --dir "$documents_root" --filter @jpowersdev/effect-documents build
+pnpm --dir "$documents_root" --filter @jpowersdev/effect-documents pack --pack-destination "$consumer_dir"
 
 # Only built modules ship, and nothing but the package's own public surface resolves.
-documents_tarball="$consumer_dir/effect-documents-0.1.0.tgz"
+documents_tarball="$consumer_dir/jpowersdev-effect-documents-0.1.0.tgz"
 packed="$(tar -tzf "$documents_tarball")"
 for module in Actor Document Documents DocumentStorage Revision SqlDocumentStorage Thread index; do
   grep -qx "package/dist/$module.js" <<<"$packed" || { echo "missing dist/$module.js"; exit 1; }
@@ -28,8 +28,8 @@ cat > "$consumer_dir/package.json" <<'JSON'
   "private": true,
   "type": "module",
   "dependencies": {
-    "effect-documents": "file:./effect-documents-0.1.0.tgz",
-    "effect-delta": "file:./effect-delta-0.1.0.tgz",
+    "@jpowersdev/effect-documents": "file:./jpowersdev-effect-documents-0.1.0.tgz",
+    "@jpowersdev/effect-delta": "file:./jpowersdev-effect-delta-0.1.0.tgz",
     "effect": "4.0.6"
   }
 }
@@ -58,8 +58,8 @@ node "$consumer_dir/smoke.mjs"
 cd "$consumer_dir"
 node --input-type=module -e '
   import assert from "node:assert/strict"
-  await assert.rejects(import("effect-documents/internal/patch"), { code: "ERR_PACKAGE_PATH_NOT_EXPORTED" })
-  await assert.rejects(import("effect-documents/index"), { code: "ERR_PACKAGE_PATH_NOT_EXPORTED" })
-  const { layerStorage } = await import("effect-documents/SqlDocumentStorage")
+  await assert.rejects(import("@jpowersdev/effect-documents/internal/patch"), { code: "ERR_PACKAGE_PATH_NOT_EXPORTED" })
+  await assert.rejects(import("@jpowersdev/effect-documents/index"), { code: "ERR_PACKAGE_PATH_NOT_EXPORTED" })
+  const { layerStorage } = await import("@jpowersdev/effect-documents/SqlDocumentStorage")
   assert.equal(typeof layerStorage, "function")
 '

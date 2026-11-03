@@ -1,7 +1,7 @@
 import { NodeCrypto, NodeHttpServer, NodeSocket } from "@effect/platform-node"
 import { SqliteClient } from "@effect/sql-sqlite-node"
 import { assert, describe, it } from "@effect/vitest"
-import { Authority, Delta, Replica, ReplicatedText, Sync } from "effect-delta"
+import { Authority, Delta, Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
 import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
 import * as Fiber from "effect/Fiber"

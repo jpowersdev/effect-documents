@@ -1,5 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
-import { Delta } from "effect-delta"
+import { Delta } from "@jpowersdev/effect-delta"
 import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
 import * as Fiber from "effect/Fiber"

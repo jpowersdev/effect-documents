@@ -7,7 +7,7 @@
  * @stability unstable
  * @since 0.1.0
  */
-import * as Delta from "effect-delta/Delta"
+import * as Delta from "@jpowersdev/effect-delta/Delta"
 import * as Schema from "effect/Schema"
 import * as Actor from "./Actor.ts"
 import * as Document from "./Document.ts"

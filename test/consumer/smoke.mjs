@@ -1,5 +1,5 @@
-import { Replica, ReplicatedText, Sync } from "effect-delta"
-import { Actor, Collaboration, Document, Documents, DocumentStorage, SqlDocumentStorage } from "effect-documents"
+import { Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
+import { Actor, Collaboration, Document, Documents, DocumentStorage, SqlDocumentStorage } from "@jpowersdev/effect-documents"
 import * as Crypto from "effect/Crypto"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"

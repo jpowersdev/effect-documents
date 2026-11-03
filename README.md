@@ -5,16 +5,16 @@ Versioned Markdown documents with attributed history, anchored review and live e
 change in any minor release.
 
 ```sh
-pnpm add effect-documents effect-delta effect
+pnpm add @jpowersdev/effect-documents @jpowersdev/effect-delta effect
 ```
 
-`effect` is a peer dependency, `~4.0.6`, and `effect-delta` one at `^0.1.0`.
+`effect` is a peer dependency, `~4.0.6`, and `@jpowersdev/effect-delta` one at `^0.1.0`.
 
 ## Use
 
 ```ts
+import { Actor, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option } from "effect"
-import { Actor, Document, Documents, DocumentStorage } from "effect-documents"
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
@@ -51,8 +51,8 @@ await Effect.runPromise(program.pipe(Effect.provide(Live)))
 | `Thread`             | An anchored discussion                                     |
 | `Actor`              | Who a change is attributed to                              |
 
-Import from the root (`import { Documents } from "effect-documents"`) or by module
-(`import * as Documents from "effect-documents/Documents"`).
+Import from the root (`import { Documents } from "@jpowersdev/effect-documents"`) or by module
+(`import * as Documents from "@jpowersdev/effect-documents/Documents"`).
 
 ## Commands
 
@@ -109,7 +109,7 @@ commands keep working, and an effect-delta `Authority` for clients to sync throu
 
 ```ts
 import { NodeCrypto } from "@effect/platform-node"
-import { Authority, Sync } from "effect-delta"
+import { Authority, Sync } from "@jpowersdev/effect-delta"
 import { RpcServer } from "effect/rpc"
 
 // One instance for all of a document's writers.

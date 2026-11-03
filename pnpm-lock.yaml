@@ -230,6 +230,9 @@ importers:
       '@effect/vitest':
         specifier: 4.0.6
         version: 4.0.6(effect@4.0.6)(vitest@5.0.3(@types/node@24.19.2)(vite@8.3.5(@types/node@24.19.2)(yaml@2.9.1)))
+      '@jpowersdev/effect-delta':
+        specifier: file:../effect-delta
+        version: file:../effect-delta(effect@4.0.6)
       '@types/node':
         specifier: 24.19.2
         version: 24.19.2
@@ -242,9 +245,6 @@ importers:
       effect:
         specifier: 4.0.6
         version: 4.0.6
-      effect-delta:
-        specifier: file:../effect-delta
-        version: file:../effect-delta(effect@4.0.6)
       miniflare:
         specifier: 5.20260925.0-alpha
         version: 5.20260925.0-alpha(@types/node@24.19.2)
@@ -765,6 +765,11 @@ packages:
     engines: {node: '>=20.9.0'}
     cpu: [x64]
     os: [win32]
+
+  '@jpowersdev/effect-delta@file:../effect-delta':
+    resolution: {directory: ../effect-delta, type: directory}
+    peerDependencies:
+      effect: ~4.0.4
 
   '@jridgewell/gen-mapping@0.4.0-beta.0':
     resolution: {integrity: sha512-JdGNkbE4GlNPYQhM0L95fBQr7ctLZJ276QXQLTad4t1oSdnnCI3fDq9DW3BqYAWv8Wc3+HS+4Gsii1oPMCfz1w==}
@@ -1293,11 +1298,6 @@ packages:
   dprint@0.60.1:
     resolution: {integrity: sha512-0zPR3nd5CYgam112KyPGHrE2qSmfi9GrnVQGjRwxyilTCkixSTDYQigsJrx7J41ohpuj6l5LRTTB8wHnXRorOg==}
     hasBin: true
-
-  effect-delta@file:../effect-delta:
-    resolution: {directory: ../effect-delta, type: directory}
-    peerDependencies:
-      effect: ~4.0.4
 
   effect@4.0.6:
     resolution: {integrity: sha512-Tc3mkzuLR6t6P9dhLt0D2GrxYtmU5td4XEJEiXCmILz53IRIfJyHsKZWjTA3xEjiwpNTtXBgI4iqYPxMztBDrw==}
@@ -2230,6 +2230,10 @@ snapshots:
   '@img/sharp-win32-x64@0.35.4':
     optional: true
 
+  '@jpowersdev/effect-delta@file:../effect-delta(effect@4.0.6)':
+    dependencies:
+      effect: 4.0.6
+
   '@jridgewell/gen-mapping@0.4.0-beta.0':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -2557,10 +2561,6 @@ snapshots:
       '@dprint/linux-x64-musl': 0.60.1
       '@dprint/win32-arm64': 0.60.1
       '@dprint/win32-x64': 0.60.1
-
-  effect-delta@file:../effect-delta(effect@4.0.6):
-    dependencies:
-      effect: 4.0.6
 
   effect@4.0.6: {}
 

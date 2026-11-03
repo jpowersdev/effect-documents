@@ -5,7 +5,7 @@
  * @stability unstable
  * @since 0.1.0
  */
-import * as ReplicatedText from "effect-delta/ReplicatedText"
+import * as ReplicatedText from "@jpowersdev/effect-delta/ReplicatedText"
 import * as Schema from "effect/Schema"
 import * as Actor from "./Actor.ts"
 

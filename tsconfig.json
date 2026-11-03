@@ -23,7 +23,7 @@
     "plugins": [
       {
         "name": "@effect/language-service",
-        "namespaceImportPackages": ["effect", "@effect/*", "effect-delta"],
+        "namespaceImportPackages": ["effect", "@effect/*", "@jpowersdev/effect-delta"],
         "ignoreEffectSuggestionsInTscExitCode": false,
         "diagnosticSeverity": {
           "anyUnknownInErrorContext": "error",
@@ -31,7 +31,6 @@
           "asyncFunction": "error",
           "cryptoRandomUUID": "error",
           "cryptoRandomUUIDInEffect": "error",
-          "deterministicKeys": "error",
           "effectDoNotation": "error",
           "effectFnOpportunity": "error",
           "extendsNativeError": "error",
@@ -78,8 +77,8 @@
                 "strictEffectProvide": "off"
               },
               "allowedUnstableApis": [
-                "effect-delta",
-                "effect-documents",
+                "@jpowersdev/effect-delta",
+                "@jpowersdev/effect-documents",
                 "effect/Crypto",
                 "effect/http",
                 "effect/net",
@@ -105,8 +104,8 @@
           }
         ],
         "allowedUnstableApis": [
-          "effect-delta",
-          "effect-documents",
+          "@jpowersdev/effect-delta",
+          "@jpowersdev/effect-documents",
           "effect/Crypto",
           "effect/sql"
         ],

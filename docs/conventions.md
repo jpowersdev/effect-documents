@@ -3,11 +3,11 @@
 Use the installed Effect version's `AGENTS.md`, `ai-docs/src` and `src` as the API
 reference. This library targets Effect 4; do not assume Effect 3 names or behavior.
 
-- Modules are namespaces: `import { Documents, DocumentStorage } from "effect-documents"`.
+- Modules are namespaces: `import { Documents, DocumentStorage } from "@jpowersdev/effect-documents"`.
   Public modules use PascalCase names; implementation files live under `internal/`
   and are not exported. Keep application concepts out of the library.
 - Source imports each module on its own: `import * as Effect from "effect/Effect"`,
-  `import * as Delta from "effect-delta/Delta"`. Tests and examples may use the barrels.
+  `import * as Delta from "@jpowersdev/effect-delta/Delta"`. Tests and examples may use the barrels.
 - The library name never appears in anything encoded, so stored data outlives a rename.
   The manifest, `sideEffects`, build and test layout follow a package in the Effect
   repository; check there before inventing one.
@@ -18,7 +18,7 @@ reference. This library targets Effect 4; do not assume Effect 3 names or behavi
   composition. Use `Effect.fn("name")` when a tracing span serves the consumer.
   Give exported functions accurate result, error and requirement types.
 - Functions over values support data-first and data-last forms with `dual` when
-  appropriate. Services are `Context.Service` classes with package-qualified keys;
+  appropriate. Services are `Context.Service` classes whose keys start with the library's unscoped name;
   layers wire dependencies at the application boundary.
 - Boundary data has a Schema. Expected failures are one tagged error with a `reason`
   union of tagged classes that have messages, as `SqlError` does; a message names the

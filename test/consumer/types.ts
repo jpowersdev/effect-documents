@@ -1,5 +1,5 @@
+import { Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
 import type { Effect } from "effect"
-import { Document, Documents, DocumentStorage } from "effect-documents"
 import * as EffectRuntime from "effect/Effect"
 import type * as Schema from "effect/Schema"
 

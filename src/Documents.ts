@@ -17,7 +17,7 @@
  *
  * ```ts
  * import { Effect, Layer, Option } from "effect"
- * import { Actor, Document, Documents, DocumentStorage } from "effect-documents"
+ * import { Actor, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
  *
  * const program = Effect.gen(function*() {
  *   const documents = yield* Documents.Documents
@@ -39,11 +39,11 @@
  * @stability unstable
  * @since 0.1.0
  */
-import * as Delta from "effect-delta/Delta"
-import * as Replica from "effect-delta/Replica"
-import * as ReplicatedText from "effect-delta/ReplicatedText"
-import * as TextPatch from "effect-delta/TextPatch"
-import * as VersionVector from "effect-delta/VersionVector"
+import * as Delta from "@jpowersdev/effect-delta/Delta"
+import * as Replica from "@jpowersdev/effect-delta/Replica"
+import * as ReplicatedText from "@jpowersdev/effect-delta/ReplicatedText"
+import * as TextPatch from "@jpowersdev/effect-delta/TextPatch"
+import * as VersionVector from "@jpowersdev/effect-delta/VersionVector"
 import * as Clock from "effect/Clock"
 import * as Context from "effect/Context"
 import * as Effect from "effect/Effect"

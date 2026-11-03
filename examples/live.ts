@@ -1,7 +1,7 @@
 import { NodeCrypto, NodeRuntime } from "@effect/platform-node"
+import { Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
+import { Actor, Collaboration, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
 import { Console, Effect, Layer, Option, Stream } from "effect"
-import { Replica, ReplicatedText, Sync } from "effect-delta"
-import { Actor, Collaboration, Document, Documents, DocumentStorage } from "effect-documents"
 
 const id = Document.Id.make("spec")
 const agent: Actor.Actor = { by: Actor.Id.make("@agent"), via: Option.none() }

@@ -1,5 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
-import { Delta, Replica, ReplicatedText } from "effect-delta"
+import { Delta, Replica, ReplicatedText } from "@jpowersdev/effect-delta"
 import * as Effect from "effect/Effect"
 import * as Equal from "effect/Equal"
 import * as Layer from "effect/Layer"

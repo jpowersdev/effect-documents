@@ -16,8 +16,8 @@
  *
  * ```ts
  * import { Effect, Layer, Option, Stream } from "effect"
- * import { Authority, Replica, ReplicatedText, Sync } from "effect-delta"
- * import { Actor, Collaboration, Document, Documents, DocumentStorage } from "effect-documents"
+ * import { Authority, Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
+ * import { Actor, Collaboration, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
  *
  * const program = Effect.gen(function*() {
  *   const documents = yield* Documents.Documents
@@ -40,12 +40,12 @@
  * @stability unstable
  * @since 0.1.0
  */
-import * as Authority from "effect-delta/Authority"
-import * as Delta from "effect-delta/Delta"
-import * as HistoryStore from "effect-delta/HistoryStore"
-import * as Replica from "effect-delta/Replica"
-import * as ReplicatedText from "effect-delta/ReplicatedText"
-import * as Sync from "effect-delta/Sync"
+import * as Authority from "@jpowersdev/effect-delta/Authority"
+import * as Delta from "@jpowersdev/effect-delta/Delta"
+import * as HistoryStore from "@jpowersdev/effect-delta/HistoryStore"
+import * as Replica from "@jpowersdev/effect-delta/Replica"
+import * as ReplicatedText from "@jpowersdev/effect-delta/ReplicatedText"
+import * as Sync from "@jpowersdev/effect-delta/Sync"
 import * as Context from "effect/Context"
 import type * as Crypto from "effect/Crypto"
 import type * as Duration from "effect/Duration"

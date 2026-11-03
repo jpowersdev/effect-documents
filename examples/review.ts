@@ -1,6 +1,6 @@
 import { NodeRuntime } from "@effect/platform-node"
+import { Actor, Document, Documents, DocumentStorage, Thread } from "@jpowersdev/effect-documents"
 import { Console, Effect, Layer, Option } from "effect"
-import { Actor, Document, Documents, DocumentStorage, Thread } from "effect-documents"
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents

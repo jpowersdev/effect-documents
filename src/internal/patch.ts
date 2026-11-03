@@ -1,4 +1,4 @@
-import * as TextPatch from "effect-delta/TextPatch"
+import * as TextPatch from "@jpowersdev/effect-delta/TextPatch"
 import * as TextDiff from "effect/TextDiff"
 
 // A whole document can come from a caller, so bound the diff's work. Past this,
