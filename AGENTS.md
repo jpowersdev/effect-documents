@@ -15,8 +15,9 @@ changing Effect code.
   implementation, live editing, history, actors and anchored review. Internal implementation belongs
   in `src/internal/`. Built the way Effect's own packages are: match how a package in
   Effect's repository is laid out, named and documented.
-- `test/`: behavior tests, and `test/utils/storageContract.ts`, which memory, SQLite,
-  PostgreSQL (PGlite) and D1 (miniflare) all run. `test/consumer/` is also installed
+- `test/`: behavior tests, and `test/utils/storageContract.ts`, which memory, SQLite, PGlite,
+  PostgreSQL and D1 (miniflare) all run. PostgreSQL is a real server in Docker, started for
+  the run, so `pnpm test` needs Docker. `test/consumer/` is also installed
   outside this repository by the package check.
 - `typetest/`: compiler behavior of the public API, with tstyche.
 - `examples/`: type-checked consumer examples.

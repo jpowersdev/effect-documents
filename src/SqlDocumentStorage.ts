@@ -120,7 +120,12 @@ const makeTable = (options: Pick<Options, "prefix">) =>
       )`
     ], { discard: true })
     yield* sql.onDialectOrElse({
-      pg: () => create,
+      // CREATE TABLE IF NOT EXISTS isn't safe to run at once on PostgreSQL: both can see no
+      // table, and the second fails. Processes starting together take turns.
+      pg: () =>
+        sql.withTransaction(
+          Effect.andThen(sql`SELECT pg_advisory_xact_lock(hashtext(CAST(${prefix} AS TEXT)))`, create)
+        ),
       sqlite: () => create,
       orElse: () => Effect.die(new Error("SqlDocumentStorage supports SQLite and PostgreSQL"))
     })

@@ -169,6 +169,22 @@ export const storageContract = <E>(name: string, layer: Layer.Layer<DocumentStor
           assert.deepStrictEqual(yield* storage.read(id).pipe(Effect.map((revision) => revision.version)), 1)
         }))
 
+      it.effect("keeps any text exactly, including what a database might mishandle", () =>
+        Effect.gen(function*() {
+          const storage = yield* DocumentStorage.DocumentStorage
+          const id = freshId()
+          const text = "NUL \u0000, emoji 😀, quotes ' \" \\, placeholders $1 ? %s, newline \n."
+          const revision = revisionOf(id, 1, text)
+          yield* storage.append({ ...revision, document: { ...revision.document, body: text } })
+          const stored = yield* storage.read(id)
+          assert.strictEqual(stored.document.title, text)
+          assert.strictEqual(stored.document.body, text)
+
+          const changes = yield* deltaOf("a", text)
+          yield* storage.stage(id, changes)
+          assert.isTrue(Equal.equals((yield* storage.staged(id))[0]!.changes, changes))
+        }))
+
       it.effect("a replica keeps its first owner", () =>
         Effect.gen(function*() {
           const storage = yield* DocumentStorage.DocumentStorage

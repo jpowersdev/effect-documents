@@ -51,6 +51,49 @@ const DocumentsLive = Documents.layer.pipe(
 await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 ```
 
+On PostgreSQL, the same program uses `@effect/sql-pg`, and reads its connection from `DATABASE_URL`. Live editing, and
+several processes starting at once, work the same way. It needs a server, so run it with one:
+
+```sh
+pnpm add @effect/sql-pg
+DATABASE_URL=postgres://localhost/app node main.ts
+```
+
+```ts
+import { PgClient } from "@effect/sql-pg"
+import {
+  Actor,
+  Document,
+  Documents,
+  SqlDocumentStorage
+} from "@jpowersdev/effect-documents"
+import { Config, Effect, Layer, Option } from "effect"
+
+const program = Effect.gen(function*() {
+  const documents = yield* Documents.Documents
+  const actor: Actor.Actor = {
+    by: Actor.Id.make("@owner"),
+    via: Option.none()
+  }
+  const created = yield* documents.create({
+    id: Document.Id.make("spec"),
+    actor,
+    title: "Spec",
+    body: "Sessions last 24 hours."
+  })
+  yield* Effect.log(created.version)
+})
+
+const DocumentsLive = Documents.layer.pipe(
+  Layer.provide(SqlDocumentStorage.layer),
+  Layer.provide(PgClient.layerConfig({
+    url: Config.Redacted("DATABASE_URL")
+  }))
+)
+
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
+```
+
 To create the tables in a deploy step or a migration file instead, use `layerStorage`, which runs no DDL. With the default
 prefix, the tables are:
 

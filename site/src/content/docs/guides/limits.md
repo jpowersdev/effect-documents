@@ -12,5 +12,3 @@ sidebar:
 - **A write per push.** Each acknowledged push writes a staged row. Clients send what gathered while the last push was
   out, so a slow store gets fewer, larger writes.
 - **A removed document's id** can't be reused until a minute after its last client has gone.
-- **Live editing on PostgreSQL** is untested, and racing writers there are tested only on PGlite, which has one
-  connection.

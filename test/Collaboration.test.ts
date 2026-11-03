@@ -29,6 +29,7 @@ import {
   Thread
 } from "../src/index.ts"
 import { layerD1 } from "./utils/d1.ts"
+import { dropConnections, layerPostgres } from "./utils/postgres.ts"
 
 const id = Document.Id.make("spec")
 const room = Replica.makeRoom(id)
@@ -648,7 +649,7 @@ describe("Collaboration", () => {
       Collaboration.layer().pipe(
         Layer.provideMerge(SqlDocumentStorage.layer.pipe(Layer.orDie)),
         Layer.provideMerge(SecureRandom.layerWebCrypto),
-        Layer.provide(client.pipe(Layer.orDie))
+        Layer.provideMerge(client.pipe(Layer.orDie))
       )
 
     const gathers = Effect.gen(function*() {
@@ -671,6 +672,56 @@ describe("Collaboration", () => {
       gathers.pipe(Effect.scoped, Effect.provide(over(SqliteClient.layer({ filename: ":memory:" })))))
 
     it.effect(
+      "on PostgreSQL, keeps live changes in its tables and gathers them",
+      () => gathers.pipe(Effect.scoped, Effect.provide(over(layerPostgres))),
+      { timeout: 30_000 }
+    )
+
+    it.effect(
+      "on PostgreSQL, a command and a stream of typing both land",
+      () =>
+        Effect.gen(function*() {
+          yield* start
+          const ada = yield* join("@ada")
+          const typing = yield* Effect.forkChild(
+            Effect.forEach(Array.from({ length: 50 }), () => ReplicatedText.insert(ada, 0, "x"), { discard: true })
+          )
+          const edited = yield* apply(agent, { _tag: "Edit", oldString: "24", newString: "8" })
+          assert.include(edited.body, "last 8 hours")
+          yield* Fiber.join(typing)
+          yield* saved(ada)
+          yield* ada.connection.sync
+          const expected = `${"x".repeat(50)}Sessions last 8 hours. Keep this sentence.`
+          assert.strictEqual(yield* ReplicatedText.get(ada), expected)
+          const documents = yield* Documents.Documents
+          assert.strictEqual((yield* documents.read(id)).body, expected)
+          assert.strictEqual(yield* rebuilt, expected)
+        }).pipe(Effect.scoped, Effect.provide(over(layerPostgres))),
+      { timeout: 30_000 }
+    )
+
+    it.live(
+      "on PostgreSQL, typing survives the database dropping every connection",
+      () =>
+        Effect.gen(function*() {
+          yield* start
+          const ada = yield* join("@ada")
+          yield* ReplicatedText.insert(ada, 0, "Before. ")
+          yield* saved(ada)
+
+          assert.isAbove(yield* dropConnections, 0)
+          yield* ReplicatedText.insert(ada, 0, "After. ")
+          yield* saved(ada)
+
+          const documents = yield* Documents.Documents
+          const expected = `After. Before. ${body}`
+          assert.strictEqual((yield* documents.read(id)).body, expected)
+          assert.strictEqual(yield* rebuilt, expected)
+        }).pipe(Effect.scoped, Effect.provide(over(layerPostgres))),
+      { timeout: 30_000 }
+    )
+
+    it.effect(
       "on D1, keeps live changes in its tables and gathers them",
       () => gathers.pipe(Effect.scoped, Effect.provide(over(layerD1))),
       { timeout: 30_000 }
@@ -689,18 +740,21 @@ describe("Collaboration", () => {
           : Effect.void
     })
 
-    const Server = HttpRouter.serve(
-      RpcServer.layer(Sync.Rpcs).pipe(
-        Layer.provide(Authority.layerHandlers),
-        Layer.provide(Users),
-        Layer.provide(RpcServer.layerProtocolWebsocket({ path: "/sync" }))
-      ),
-      { disableListenLog: true, disableLogger: true }
-    ).pipe(
-      Layer.provideMerge(Live),
-      Layer.provideMerge(NodeHttpServer.layerTest),
-      Layer.provide(RpcSerialization.layerNdjson)
-    )
+    const serving = <A, E>(session: Layer.Layer<A, E>) =>
+      HttpRouter.serve(
+        RpcServer.layer(Sync.Rpcs).pipe(
+          Layer.provide(Authority.layerHandlers),
+          Layer.provide(Users),
+          Layer.provide(RpcServer.layerProtocolWebsocket({ path: "/sync" }))
+        ),
+        { disableListenLog: true, disableLogger: true }
+      ).pipe(
+        Layer.provideMerge(session),
+        Layer.provideMerge(NodeHttpServer.layerTest),
+        Layer.provide(RpcSerialization.layerNdjson)
+      )
+
+    const Server = serving(Live)
 
     const connect = (user: string) =>
       Effect.gen(function*() {
@@ -716,25 +770,39 @@ describe("Collaboration", () => {
         return yield* ReplicatedText.makeConfirmed({ room }).pipe(Effect.provideContext(context))
       })
 
-    it.live("real clients type together, and the server decides who they are", () =>
-      Effect.gen(function*() {
-        yield* start
-        const ada = yield* connect("@ada")
-        const ben = yield* connect("@ben")
-        yield* showing(ada, body)
-        yield* showing(ben, body)
-        yield* ReplicatedText.insert(ada, 0, "Draft: ")
-        yield* showing(ben, `Draft: ${body}`)
-        yield* ReplicatedText.insert(ben, 0, "Ben's ")
-        yield* showing(ada, `Ben's Draft: ${body}`)
+    const typingTogether = Effect.gen(function*() {
+      yield* start
+      const ada = yield* connect("@ada")
+      const ben = yield* connect("@ben")
+      yield* showing(ada, body)
+      yield* showing(ben, body)
+      yield* ReplicatedText.insert(ada, 0, "Draft: ")
+      yield* showing(ben, `Draft: ${body}`)
+      yield* ReplicatedText.insert(ben, 0, "Ben's ")
+      yield* showing(ada, `Ben's Draft: ${body}`)
 
-        const edited = yield* apply(agent, { _tag: "Edit", oldString: "24", newString: "8" })
-        yield* showing(ada, edited.body)
-        yield* showing(ben, edited.body)
-        const history = yield* historyOf
-        assert.deepStrictEqual(history[1]!.actors, [by("@ada"), by("@ben")])
-        assert.deepStrictEqual(history[2]!.actors, [agent])
-      }).pipe(Effect.scoped, Effect.provide(Server)))
+      const edited = yield* apply(agent, { _tag: "Edit", oldString: "24", newString: "8" })
+      yield* showing(ada, edited.body)
+      yield* showing(ben, edited.body)
+      const history = yield* historyOf
+      assert.deepStrictEqual(history[1]!.actors, [by("@ada"), by("@ben")])
+      assert.deepStrictEqual(history[2]!.actors, [agent])
+    })
+
+    it.live("real clients type together, and the server decides who they are", () =>
+      typingTogether.pipe(Effect.scoped, Effect.provide(Server)))
+
+    it.live(
+      "real clients type together on PostgreSQL",
+      () =>
+        typingTogether.pipe(
+          Effect.scoped,
+          Effect.provide(serving(Session.pipe(
+            Layer.provideMerge(SqlDocumentStorage.layer.pipe(Layer.provide(layerPostgres), Layer.orDie))
+          )))
+        ),
+      { timeout: 30_000 }
+    )
 
     it.live("a person who may read but not write sees text and can't change it", () =>
       Effect.gen(function*() {
@@ -779,7 +847,8 @@ describe("Collaboration", () => {
 
     const stores = [
       ["a store that answers at once", Stored],
-      ["a store that takes its time", Unhurried.pipe(Layer.provide(Stored))]
+      ["a store that takes its time", Unhurried.pipe(Layer.provide(Stored))],
+      ["PostgreSQL", SqlDocumentStorage.layer.pipe(Layer.provide(layerPostgres), Layer.orDie)]
     ] as const
 
     for (const [name, store] of stores) {

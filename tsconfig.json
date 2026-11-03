@@ -88,6 +88,7 @@
                 "@effect/vitest",
                 "@effect/platform-node",
                 "@effect/sql-d1",
+                "@effect/sql-pg",
                 "@effect/sql-pglite",
                 "@effect/sql-sqlite-node"
               ]

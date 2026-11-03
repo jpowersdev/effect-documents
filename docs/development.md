@@ -13,5 +13,7 @@ pnpm docs:build
 pnpm pack-check
 ```
 
+`pnpm test` starts PostgreSQL in Docker, so it needs Docker running.
+
 `pack-check` installs the packed library in a temporary consumer, type-checks it under NodeNext and runs it with only its
 peers, then runs every example in the docs and `examples/` there with Node.js alone. [`releasing.md`](releasing.md) has the release steps.
