@@ -26,7 +26,12 @@ An edit that would split a surrogate pair fails with `SplitsSurrogatePair`.
 over a reply its caller hasn't seen. Other commands apply to the current text.
 
 ```ts import.meta.vitest
-import { Actor, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Document,
+  Documents,
+  DocumentStorage
+} from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
@@ -34,8 +39,17 @@ const program = Effect.gen(function*() {
   const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
   const id = Document.Id.make("spec")
 
-  const first = yield* documents.create({ id, actor, title: "Spec", body: "Sessions last 24 hours." })
-  yield* documents.apply({ id, actor, command: { _tag: "Edit", oldString: "24", newString: "8" } })
+  const first = yield* documents.create({
+    id,
+    actor,
+    title: "Spec",
+    body: "Sessions last 24 hours."
+  })
+  yield* documents.apply({
+    id,
+    actor,
+    command: { _tag: "Edit", oldString: "24", newString: "8" }
+  })
 
   // Named a version that's no longer current
   const result = yield* documents.apply({
@@ -44,7 +58,11 @@ const program = Effect.gen(function*() {
     command: { _tag: "Update", version: first.version, body: "Sessions never end." }
   }).pipe(
     Effect.map(() => "Updated"),
-    Effect.catchReason("DocumentStorageError", "Conflict", () => Effect.succeed("Someone else got there first"))
+    Effect.catchReason(
+      "DocumentStorageError",
+      "Conflict",
+      () => Effect.succeed("Someone else got there first")
+    )
   )
   yield* Effect.log(result)
   return result
@@ -65,7 +83,13 @@ When every anchored character is deleted, the range becomes `None`, and the quot
 bring back deleted anchors.
 
 ```ts import.meta.vitest
-import { Actor, Document, Documents, DocumentStorage, Thread } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Document,
+  Documents,
+  DocumentStorage,
+  Thread
+} from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
@@ -74,7 +98,12 @@ const program = Effect.gen(function*() {
   const id = Document.Id.make("performance-map")
   const thread = Thread.Id.make("measurement")
 
-  yield* documents.create({ id, actor, title: "Performance map", body: "Clicks take 40 ms." })
+  yield* documents.create({
+    id,
+    actor,
+    title: "Performance map",
+    body: "Clicks take 40 ms."
+  })
   yield* documents.apply({
     id,
     actor,
@@ -85,7 +114,11 @@ const program = Effect.gen(function*() {
   const edited = yield* documents.apply({
     id,
     actor,
-    command: { _tag: "Edit", oldString: "Clicks take", newString: "On Chromium, clicks take" }
+    command: {
+      _tag: "Edit",
+      oldString: "Clicks take",
+      newString: "On Chromium, clicks take"
+    }
   })
   const range = Option.getOrThrow(edited.threads[0]!.range)
   const quoted = edited.body.slice(range.start, range.end)

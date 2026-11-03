@@ -19,7 +19,12 @@ sidebar:
 else. The host decodes it, and supplies who and which document from its own session and route.
 
 ```ts import.meta.vitest
-import { Actor, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Document,
+  Documents,
+  DocumentStorage
+} from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option, Schema } from "effect"
 
 const Payload = Schema.Struct({
@@ -28,7 +33,10 @@ const Payload = Schema.Struct({
 })
 
 // What an authenticated request to PATCH /documents/spec might carry
-const body = { note: "Tightened", command: { _tag: "Edit", oldString: "24", newString: "8" } }
+const body = {
+  note: "Tightened",
+  command: { _tag: "Edit", oldString: "24", newString: "8" }
+}
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents

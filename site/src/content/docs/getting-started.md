@@ -21,7 +21,12 @@ Every example in these docs is a complete program. Save this as `main.ts` and ru
 in a package with `"type": "module"`. An example that needs another package says so.
 
 ```ts import.meta.vitest
-import { Actor, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Document,
+  Documents,
+  DocumentStorage
+} from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
@@ -29,7 +34,12 @@ const program = Effect.gen(function*() {
   const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
   const id = Document.Id.make("performance-map")
 
-  yield* documents.create({ id, actor, title: "Performance map", body: "Clicks take 40 ms." })
+  yield* documents.create({
+    id,
+    actor,
+    title: "Performance map",
+    body: "Clicks take 40 ms."
+  })
   yield* documents.apply({
     id,
     actor,

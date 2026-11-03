@@ -13,7 +13,13 @@ commands keep working, and an effect-delta `Authority` for clients to sync throu
 
 ```ts import.meta.vitest
 import { Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
-import { Actor, Collaboration, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Collaboration,
+  Document,
+  Documents,
+  DocumentStorage
+} from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option, Stream } from "effect"
 import { SecureRandom } from "effect/crypto"
 
@@ -22,19 +28,32 @@ const agent: Actor.Actor = { by: Actor.Id.make("@agent"), via: Option.none() }
 
 const join = (user: string) =>
   Effect.gen(function*() {
-    const text = yield* ReplicatedText.makeConfirmed({ document: Replica.DocumentId.make(id) }).pipe(
+    const text = yield* ReplicatedText.makeConfirmed({
+      document: Replica.DocumentId.make(id)
+    }).pipe(
       Effect.provideService(Sync.CurrentUser, user)
     )
-    yield* text.connection.status.pipe(Stream.filter((status) => status._tag === "Synced"), Stream.runHead)
+    yield* text.connection.status.pipe(
+      Stream.filter((status) => status._tag === "Synced"),
+      Stream.runHead
+    )
     return text
   })
 
 const saved = (text: ReplicatedText.Confirmed) =>
-  text.connection.unconfirmed.pipe(Stream.filter((count) => count === 0), Stream.runHead)
+  text.connection.unconfirmed.pipe(
+    Stream.filter((count) => count === 0),
+    Stream.runHead
+  )
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  yield* documents.create({ id, actor: agent, title: "Spec", body: "Sessions last 24 hours." })
+  yield* documents.create({
+    id,
+    actor: agent,
+    title: "Spec",
+    body: "Sessions last 24 hours."
+  })
 
   const ada = yield* join("@ada")
   const ben = yield* join("@ben")
@@ -43,10 +62,16 @@ const program = Effect.gen(function*() {
   yield* Effect.all([saved(ada), saved(ben)])
 
   // No version: the agent's edit applies to whatever the text is now
-  yield* documents.apply({ id, actor: agent, command: { _tag: "Edit", oldString: "24", newString: "8" } })
+  yield* documents.apply({
+    id,
+    actor: agent,
+    command: { _tag: "Edit", oldString: "24", newString: "8" }
+  })
 
   const history = yield* documents.history(id)
-  const entries = history.map(({ action, actors }) => `${action} by ${actors.map(({ by }) => by).join(", ")}`)
+  const entries = history.map(({ action, actors }) =>
+    `${action} by ${actors.map(({ by }) => by).join(", ")}`
+  )
   yield* Effect.log(entries)
   return entries
 })
@@ -71,7 +96,13 @@ pnpm add @effect/platform-node
 ```ts import.meta.vitest
 import { NodeHttpServer, NodeSocket } from "@effect/platform-node"
 import { Authority, Replica, ReplicatedText, Sync } from "@jpowersdev/effect-delta"
-import { Actor, Collaboration, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Collaboration,
+  Document,
+  Documents,
+  DocumentStorage
+} from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option, Stream } from "effect"
 import { SecureRandom } from "effect/crypto"
 import { Headers, HttpRouter } from "effect/http"
@@ -81,7 +112,9 @@ import { createServer } from "node:http"
 // One instance for all of a document's writers
 const CollaborationLive = Collaboration.layer({
   check: ({ user }) =>
-    user === "@viewer" ? Effect.fail(new Authority.Rejected({ message: "Read only" })) : Effect.void
+    user === "@viewer"
+      ? Effect.fail(new Authority.Rejected({ message: "Read only" }))
+      : Effect.void
 }).pipe(
   Layer.provideMerge(DocumentStorage.layerMemory),
   Layer.provide(SecureRandom.layerWebCrypto)
@@ -112,7 +145,11 @@ const ServerLive = HttpRouter.serve(
 // What a client provides
 const AuthorityRemote = Authority.layerRemote.pipe(
   Layer.provide(RpcClient.layerProtocolSocket()),
-  Layer.provide(NodeSocket.layerWebSocket("ws://localhost:3102/sync", { headers: { "x-user": "@ada" } })),
+  Layer.provide(
+    NodeSocket.layerWebSocket("ws://localhost:3102/sync", {
+      headers: { "x-user": "@ada" }
+    })
+  ),
   Layer.provide(RpcSerialization.layerNdjson)
 )
 
@@ -121,15 +158,32 @@ const agent: Actor.Actor = { by: Actor.Id.make("@agent"), via: Option.none() }
 
 // In the client, the text follows everyone else's and sends its own
 const typing = Effect.gen(function*() {
-  const text = yield* ReplicatedText.makeConfirmed({ document: Replica.DocumentId.make(id) })
-  yield* text.connection.status.pipe(Stream.filter((status) => status._tag === "Synced"), Stream.runHead)
+  const text = yield* ReplicatedText.makeConfirmed({
+    document: Replica.DocumentId.make(id)
+  })
+  yield* text.connection.status.pipe(
+    Stream.filter((status) => status._tag === "Synced"),
+    Stream.runHead
+  )
   yield* ReplicatedText.insert(text, 0, "Draft: ")
-  yield* text.connection.unconfirmed.pipe(Stream.filter((count) => count === 0), Stream.runHead)
-}).pipe(Effect.scoped, Effect.provide(AuthorityRemote), Effect.provide(SecureRandom.layerWebCrypto))
+  yield* text.connection.unconfirmed.pipe(
+    Stream.filter((count) => count === 0),
+    Stream.runHead
+  )
+}).pipe(
+  Effect.scoped,
+  Effect.provide(AuthorityRemote),
+  Effect.provide(SecureRandom.layerWebCrypto)
+)
 
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
-  yield* documents.create({ id, actor: agent, title: "Spec", body: "Sessions last 24 hours." })
+  yield* documents.create({
+    id,
+    actor: agent,
+    title: "Spec",
+    body: "Sessions last 24 hours."
+  })
   yield* typing
   const body = (yield* documents.read(id)).body
   yield* Effect.log(body)

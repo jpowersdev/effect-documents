@@ -32,7 +32,13 @@ pnpm add -D wrangler @cloudflare/workers-types
 ```ts
 import { D1Client } from "@effect/sql-d1"
 import { Authority, Sync } from "@jpowersdev/effect-delta"
-import { Actor, Collaboration, Document, Documents, SqlDocumentStorage } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Collaboration,
+  Document,
+  Documents,
+  SqlDocumentStorage
+} from "@jpowersdev/effect-documents"
 import { DurableObject } from "cloudflare:workers"
 import { Context, Effect, Layer, ManagedRuntime, Option, Scope } from "effect"
 import { SecureRandom } from "effect/crypto"
@@ -57,7 +63,8 @@ const Users = Layer.succeed(Sync.Authorization)({
 // Runs the RPC server, and hands sockets to it for as long as the object lives
 class Sockets extends Context.Service<Sockets>()("Sockets", {
   make: Effect.gen(function*() {
-    const { httpEffect, protocol } = yield* RpcServer.makeProtocolWithHttpEffectWebsocket
+    const { httpEffect, protocol } = yield* RpcServer
+      .makeProtocolWithHttpEffectWebsocket
     yield* RpcServer.make(Sync.Rpcs).pipe(
       Effect.provideService(RpcServer.Protocol, protocol),
       Effect.forkScoped
@@ -95,7 +102,10 @@ export class DocumentObject extends DurableObject<Env> {
       const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
       const body = await request.text()
       const created = await this.runtime.runPromise(
-        Effect.flatMap(Documents.Documents, (documents) => documents.create({ id, actor, title: id, body }))
+        Effect.flatMap(
+          Documents.Documents,
+          (documents) => documents.create({ id, actor, title: id, body })
+        )
       )
       return Response.json({ version: created.version })
     }

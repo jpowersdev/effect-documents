@@ -16,7 +16,12 @@ pnpm add @effect/sql-sqlite-node
 
 ```ts import.meta.vitest
 import { SqliteClient } from "@effect/sql-sqlite-node"
-import { Actor, Document, Documents, SqlDocumentStorage } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Document,
+  Documents,
+  SqlDocumentStorage
+} from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
@@ -75,18 +80,27 @@ transaction, or `batch` on D1.
 
 ```ts import.meta.vitest
 import { SqliteClient } from "@effect/sql-sqlite-node"
-import { Actor, Document, Documents, SqlDocumentStorage } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Document,
+  Documents,
+  SqlDocumentStorage
+} from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option } from "effect"
 import { SqlClient } from "effect/sql"
 
 const StorageLive = Layer.unwrap(Effect.gen(function*() {
   const sql = yield* SqlClient.SqlClient
-  yield* sql`CREATE TABLE IF NOT EXISTS my_documents (id TEXT PRIMARY KEY, title TEXT NOT NULL)`
+  yield* sql`CREATE TABLE IF NOT EXISTS my_documents (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL
+  )`
   return SqlDocumentStorage.layerWith({
     commit: (statement, revision) =>
       sql.withTransaction(Effect.andThen(
         statement,
-        sql`INSERT INTO my_documents (id, title) VALUES (${revision.document.id}, ${revision.document.title})
+        sql`INSERT INTO my_documents (id, title)
+          VALUES (${revision.document.id}, ${revision.document.title})
           ON CONFLICT (id) DO UPDATE SET title = excluded.title`
       ))
   })
@@ -95,7 +109,12 @@ const StorageLive = Layer.unwrap(Effect.gen(function*() {
 const program = Effect.gen(function*() {
   const documents = yield* Documents.Documents
   const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
-  yield* documents.create({ id: Document.Id.make("spec"), actor, title: "Spec", body: "Sessions last 24 hours." })
+  yield* documents.create({
+    id: Document.Id.make("spec"),
+    actor,
+    title: "Spec",
+    body: "Sessions last 24 hours."
+  })
 
   const sql = yield* SqlClient.SqlClient
   const rows = yield* sql<{ readonly title: string }>`SELECT title FROM my_documents`

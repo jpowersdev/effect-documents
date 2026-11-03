@@ -18,7 +18,12 @@ hero:
 import { Card, CardGrid, LinkButton } from "@astrojs/starlight/components"
 
 ```ts import.meta.vitest
-import { Actor, Document, Documents, DocumentStorage } from "@jpowersdev/effect-documents"
+import {
+  Actor,
+  Document,
+  Documents,
+  DocumentStorage
+} from "@jpowersdev/effect-documents"
 import { Effect, Layer, Option } from "effect"
 
 const program = Effect.gen(function*() {
@@ -26,8 +31,17 @@ const program = Effect.gen(function*() {
   const actor: Actor.Actor = { by: Actor.Id.make("@owner"), via: Option.none() }
   const id = Document.Id.make("performance-map")
 
-  const first = yield* documents.create({ id, actor, title: "Performance map", body: "Clicks take 40 ms." })
-  yield* documents.apply({ id, actor, command: { _tag: "Edit", oldString: "40 ms", newString: "32 ms" } })
+  const first = yield* documents.create({
+    id,
+    actor,
+    title: "Performance map",
+    body: "Clicks take 40 ms."
+  })
+  yield* documents.apply({
+    id,
+    actor,
+    command: { _tag: "Edit", oldString: "40 ms", newString: "32 ms" }
+  })
 
   // The current text, and any earlier version
   const now = yield* documents.read(id)
@@ -46,20 +60,44 @@ await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => ["Cli
   <Card title="Attributed history" icon="document">
     Every successful command appends one immutable revision, crediting who ran it. Any version can be read back.
 
+    ```ts
+    yield* documents.apply({ id, actor, command })
+    yield* documents.history(id)
+    yield* documents.read(id, { version: 1 })
+    ```
+
     <LinkButton href="guides/commands/" variant="minimal" icon="right-arrow">Commands</LinkButton>
   </Card>
   <Card title="Anchored review" icon="comment">
     Discussions attach to the text they're about, and follow it through later edits.
+
+    ```ts
+    yield* documents.apply({ id, actor, command: {
+      _tag: "Open", thread, start: 12, quote: "40 ms", body
+    } })
+    ```
 
     <LinkButton href="guides/commands/#discuss-a-passage" variant="minimal" icon="right-arrow">Discussions</LinkButton>
   </Card>
   <Card title="Live editing" icon="random">
     People type at once while agents run commands, and the changes join the history.
 
+    ```ts
+    const text = yield* ReplicatedText.makeConfirmed({ document })
+    yield* ReplicatedText.insert(text, 0, "Draft: ")
+    yield* documents.apply({ id, actor, command })
+    ```
+
     <LinkButton href="guides/live-editing/" variant="minimal" icon="right-arrow">Live editing</LinkButton>
   </Card>
   <Card title="Your database" icon="seti:db">
     SQLite, D1 and PostgreSQL, and a revision can commit atomically with your own tables.
+
+    ```ts
+    const DocumentsLive = Documents.layer.pipe(
+      Layer.provide(SqlDocumentStorage.layer)
+    )
+    ```
 
     <LinkButton href="guides/storage/" variant="minimal" icon="right-arrow">Storage</LinkButton>
   </Card>
