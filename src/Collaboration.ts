@@ -35,7 +35,7 @@
  *   })
  *
  *   const client = yield* ReplicatedText.makeConfirmed({
- *     room: Replica.RoomId.make(id)
+ *     room: Replica.makeRoom(id)
  *   }).pipe(
  *     Effect.provideService(Sync.CurrentUser, "@ada")
  *   )
@@ -241,7 +241,7 @@ export const layer = <R = never>(options?: {
       const base = yield* Ref.make(Delta.version(
         Delta.ReducerUnion.combineAll(yield* storage.changes(id, { through: version }))
       ))
-      const text = yield* ReplicatedText.makeConfirmed({ room: Replica.RoomId.make(id) }).pipe(
+      const text = yield* ReplicatedText.makeConfirmed({ room: Replica.makeRoom(id) }).pipe(
         Effect.provideService(Sync.CurrentUser, serverUser),
         Effect.provideService(Authority.Authority, server),
         Effect.provideService(SecureRandom.SecureRandom, random)

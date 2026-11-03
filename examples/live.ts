@@ -18,7 +18,7 @@ const agent: Actor.Actor = {
 const join = (user: string) =>
   Effect.gen(function*() {
     const text = yield* ReplicatedText.makeConfirmed({
-      room: Replica.RoomId.make(id)
+      room: Replica.makeRoom(id)
     }).pipe(
       Effect.provideService(Sync.CurrentUser, user)
     )

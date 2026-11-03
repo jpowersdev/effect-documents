@@ -36,7 +36,7 @@ await Effect.runPromise(Effect.gen(function*() {
   const id = Document.Id.make("live-consumer")
   const actor = { by: Actor.Id.make("@agent"), via: Option.none() }
   yield* documents.create({ id, actor, title: "Installed package", body: "Before" })
-  const ada = yield* ReplicatedText.makeConfirmed({ room: Replica.RoomId.make(id) }).pipe(
+  const ada = yield* ReplicatedText.makeConfirmed({ room: Replica.makeRoom(id) }).pipe(
     Effect.provideService(Sync.CurrentUser, "@ada")
   )
   yield* ada.connection.status.pipe(Stream.filter((status) => status._tag === "Synced"), Stream.runHead)

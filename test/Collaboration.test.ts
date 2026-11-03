@@ -31,7 +31,7 @@ import {
 import { layerD1 } from "./utils/d1.ts"
 
 const id = Document.Id.make("spec")
-const room = Replica.RoomId.make(id)
+const room = Replica.makeRoom(id)
 const agent: Actor.Actor = {
   by: Actor.Id.make("@agent"),
   via: Option.some({ harness: "test", model: Option.none(), session: Option.none() })
