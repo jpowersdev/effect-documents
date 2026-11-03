@@ -73,7 +73,6 @@ const program = Effect.gen(function*() {
     `${action} by ${actors.map(({ by }) => by).join(", ")}`
   )
   yield* Effect.log(entries)
-  return entries
 })
 
 const CollaborationLive = Collaboration.layer().pipe(
@@ -81,7 +80,7 @@ const CollaborationLive = Collaboration.layer().pipe(
   Layer.provideMerge(SecureRandom.layerWebCrypto)
 )
 
-await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(CollaborationLive))) // => ["Create by @agent", "Merge by @ada, @ben", "Edit by @agent"]
+await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(CollaborationLive)))
 ```
 
 ## Over a network
@@ -187,10 +186,9 @@ const program = Effect.gen(function*() {
   yield* typing
   const body = (yield* documents.read(id)).body
   yield* Effect.log(body)
-  return body
 })
 
-await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(ServerLive))) // => "Draft: Sessions last 24 hours."
+await Effect.runPromise(program.pipe(Effect.scoped, Effect.provide(ServerLive)))
 ```
 
 The server and client share a process here so the example runs by itself.

@@ -65,12 +65,11 @@ const program = Effect.gen(function*() {
     )
   )
   yield* Effect.log(result)
-  return result
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
 
-await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => "Someone else got there first"
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 ```
 
 ## Discuss a passage
@@ -121,14 +120,12 @@ const program = Effect.gen(function*() {
     }
   })
   const range = Option.getOrThrow(edited.threads[0]!.range)
-  const quoted = edited.body.slice(range.start, range.end)
-  yield* Effect.log(quoted)
-  return quoted
+  yield* Effect.log(edited.body.slice(range.start, range.end))
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
 
-await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => "40 ms"
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 ```
 
 ## Attribution

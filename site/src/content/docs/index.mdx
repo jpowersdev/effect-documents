@@ -46,14 +46,12 @@ const program = Effect.gen(function*() {
   // The current text, and any earlier version
   const now = yield* documents.read(id)
   const then = yield* documents.read(id, { version: first.version })
-  const bodies = [now.body, then.body]
-  yield* Effect.log(bodies)
-  return bodies
+  yield* Effect.log([now.body, then.body])
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
 
-await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => ["Clicks take 32 ms.", "Clicks take 40 ms."]
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 ```
 
 <CardGrid>

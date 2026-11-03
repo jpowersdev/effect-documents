@@ -46,12 +46,10 @@ const program = Effect.gen(function*() {
 
   const payload = yield* Schema.decodeUnknownEffect(Payload)(body)
   const edited = yield* documents.apply({ id, actor, ...payload })
-  const text = edited.body
-  yield* Effect.log(text)
-  return text
+  yield* Effect.log(edited.body)
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
 
-await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => "Sessions last 8 hours."
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 ```

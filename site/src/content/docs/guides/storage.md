@@ -35,7 +35,6 @@ const program = Effect.gen(function*() {
   })
   const version = created.version
   yield* Effect.log(version)
-  return version
 })
 
 const DocumentsLive = Documents.layer.pipe(
@@ -44,7 +43,7 @@ const DocumentsLive = Documents.layer.pipe(
   Layer.provide(SqliteClient.layer({ filename: ":memory:" }))
 )
 
-await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => 1
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 ```
 
 To create the tables in a deploy step or a migration file instead, use `layerStorage`, which runs no DDL. With the default
@@ -117,9 +116,9 @@ const program = Effect.gen(function*() {
   })
 
   const sql = yield* SqlClient.SqlClient
-  const rows = yield* sql<{ readonly title: string }>`SELECT title FROM my_documents`
-  yield* Effect.log(rows)
-  return rows
+  yield* Effect.log(
+    yield* sql<{ readonly title: string }>`SELECT title FROM my_documents`
+  )
 })
 
 const DocumentsLive = Documents.layer.pipe(
@@ -127,7 +126,7 @@ const DocumentsLive = Documents.layer.pipe(
   Layer.provideMerge(SqliteClient.layer({ filename: ":memory:" }))
 )
 
-await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => [{ title: "Spec" }]
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 ```
 
 A conflict rolls back your write. A write of yours that fails rolls back the revision, and surfaces as a `StorageFailure`.

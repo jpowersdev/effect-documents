@@ -48,14 +48,12 @@ const program = Effect.gen(function*() {
   })
 
   const history = yield* documents.history(id)
-  const entries = history.map(({ action, note }) => `${action}: ${note}`)
-  yield* Effect.log(entries)
-  return entries
+  yield* Effect.log(history.map(({ action, note }) => `${action}: ${note}`))
 })
 
 const DocumentsLive = Documents.layer.pipe(Layer.provide(DocumentStorage.layerMemory))
 
-await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive))) // => ["Create: ", "Edit: Updated after a paired run."]
+await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 ```
 
 `Documents` is the engine, and `DocumentStorage` is where it keeps revisions. `layerMemory` is for tests and examples.
