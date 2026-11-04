@@ -233,6 +233,31 @@ export class QuoteChanged extends Schema.TaggedError<QuoteChanged>("effect-docum
 }
 
 /**
+ * An update made on an earlier version changed text that has changed since, so
+ * merging it could read badly. `passages` says where.
+ *
+ * @stability unstable
+ * @category errors
+ * @since 0.2.0
+ */
+export class MergeOverlaps extends Schema.TaggedError<MergeOverlaps>("effect-documents/Documents/MergeOverlaps")(
+  "MergeOverlaps",
+  { version: Document.Version, passages: Schema.Array(Schema.String) }
+) {
+  /**
+   * Says what to do next, because an agent reads it.
+   *
+   * @stability unstable
+   * @since 0.2.0
+   */
+  override get message(): string {
+    return `Others have changed the same text since version ${this.version}: ${
+      this.passages.map((passage) => JSON.stringify(passage)).join(", ")
+    }; read the document again and reconsider that part`
+  }
+}
+
+/**
  * A command was rejected, so no revision was made. The `reason` says why.
  *
  * @stability unstable
@@ -249,7 +274,8 @@ export class DocumentsError extends Schema.TaggedError<DocumentsError>("effect-d
       SplitsSurrogatePair,
       ThreadNotFound,
       ThreadAlreadyExists,
-      QuoteChanged
+      QuoteChanged,
+      MergeOverlaps
     ])
   }
 ) {
@@ -283,9 +309,14 @@ export class DocumentsError extends Schema.TaggedError<DocumentsError>("effect-d
  *   or has become ambiguous.
  * - `Update` replaces the title, the body or both, in one revision. Anchors on
  *   unchanged text survive. `version` is the version its caller read; a stale one
- *   fails with `Conflict`, because the update would undo what it never saw.
+ *   fails with `Conflict`, because the update would undo what it never saw. With
+ *   `merge`, a stale one instead brings what the update changed from that version
+ *   into the current text, as a concurrent edit would, and fails with
+ *   `MergeOverlaps` if that text has changed since.
  * - `Open` starts a discussion on the exact `quote` at UTF-16 offset `start`, and
- *   fails with `QuoteChanged` if that isn't what's there now.
+ *   fails with `QuoteChanged` if that isn't what's there now. A discussion follows
+ *   its passage through later edits: when an edit replaces either end of it, the
+ *   passage takes in what replaced it, so only deleting every character loses it.
  * - `Reply` and `Reopen` continue a discussion. A reply reopens it.
  * - `Resolve` closes a discussion. `version` is the version its caller read; it
  *   fails with `Conflict` only if the discussion has moved on since, not if the
@@ -307,7 +338,8 @@ export const Command = Schema.Union([
   Schema.TaggedStruct("Update", {
     version: Document.Version,
     title: Schema.optionalKey(Schema.String),
-    body: Schema.optionalKey(Schema.String)
+    body: Schema.optionalKey(Schema.String),
+    merge: Schema.optionalKey(Schema.Boolean)
   }),
   Schema.TaggedStruct("Open", {
     thread: Thread.Id,
@@ -460,6 +492,52 @@ const locate = (
     ({ thread }) => Effect.map(ReplicatedText.locateRange(text, thread.anchor), (range) => ({ thread, range }))
   )
 
+// Where each discussion is now. Most follow their characters. One whose passage
+// had an end replaced, or that replacing a whole span took with it, follows from
+// where it was before the change to what's there now: its characters would leave
+// it on what's left of the passage, or nothing.
+const follow = (
+  threads: ReadonlyArray<Thread.Located>,
+  before: Document.Document,
+  after: string,
+  text: ReplicatedText.ReplicatedText
+): Effect.Effect<ReadonlyArray<Thread.Located>> =>
+  Effect.gen(function*() {
+    const located = yield* locate(threads, text)
+    if (before.body === after) return located
+    const was = new Map(before.threads.map(({ range, thread }) => [thread.id, range]))
+    const patch = InternalPatch.between(before.body, after)
+    return yield* Effect.forEach(located, (entry) =>
+      Effect.gen(function*() {
+        const range = was.get(entry.thread.id)
+        if (range === undefined || Option.isNone(range)) return entry
+        // A passage that still says what it said is where its characters put it
+        if (
+          Option.isSome(entry.range) &&
+          after.slice(entry.range.value.start, entry.range.value.end) ===
+            before.body.slice(range.value.start, range.value.end)
+        ) return entry
+        const moved = InternalPatch.followed(patch, range.value)
+        // With nothing there now, there's nothing to follow. A passage only changed
+        // inside, or that lost an end with nothing in its place, is where it is.
+        if (moved.end <= moved.start || (Option.isSome(entry.range) && !moved.replaced)) return entry
+        // What's there now may still say what the passage said, among other things
+        const there = after.slice(moved.start, moved.end)
+        const said = before.body.slice(range.value.start, range.value.end)
+        const at = there.indexOf(said)
+        const within = at !== -1 && there.indexOf(said, at + 1) === -1
+        const start = within ? moved.start + at : moved.start
+        const end = within ? start + said.length : moved.end
+        return yield* ReplicatedText.anchorRange(text, { start, end }).pipe(
+          Effect.map((anchor): Thread.Located => ({
+            thread: { ...entry.thread, anchor },
+            range: Option.some({ start, end })
+          })),
+          Effect.orElseSucceed(() => entry)
+        )
+      }))
+  })
+
 /**
  * A document's text to edit, and what its last revision covers.
  *
@@ -546,10 +624,13 @@ const commit = Effect.fnUntraced(function*(
   yield* workspace.settle(text)
   const { value, version } = yield* consistent(
     text,
-    Effect.all({
-      body: ReplicatedText.get(text),
-      threads: locate(entry.threads, text),
-      changes: Replica.delta(text, base)
+    Effect.gen(function*() {
+      const body = yield* ReplicatedText.get(text)
+      return {
+        body,
+        threads: yield* follow(entry.threads, previous.document, body, text),
+        changes: yield* Replica.delta(text, base)
+      }
     })
   )
   const others = yield* contributors(storage, id, version, base)
@@ -693,6 +774,53 @@ export const makeWith = ({ run, storage }: {
           )
         })
 
+        // Brings in what an update changed from the version it read, as a concurrent
+        // edit would. It's worked out on copies, so text that overlaps changes nothing,
+        // and made as an edit from the result, as others may be typing in this text.
+        const mergeBody = Effect.fnUntraced(function*(read: Document.Document, body: string) {
+          const { text } = yield* workspace.load
+          while (true) {
+            const { value: theirs } = yield* consistent(
+              text,
+              Effect.all({ body: ReplicatedText.get(text), changes: Replica.delta(text, VersionVector.empty) })
+            )
+            const fork = yield* ReplicatedText.make({ replica: Replica.makeId("merge-update") })
+            yield* Replica.receive(
+              fork,
+              Delta.ReducerUnion.combineAll(yield* storage.changes(id, { through: read.version }))
+            ).pipe(Effect.mapError(storageFailure))
+            const forked = yield* Replica.version(fork)
+            yield* ReplicatedText.modify(fork, (before) => [undefined, InternalPatch.between(before, body)]).pipe(
+              Effect.catch(fromTextError)
+            )
+            const trial = yield* ReplicatedText.make({ replica: Replica.makeId("merge-trial") })
+            yield* Replica.receive(trial, theirs.changes).pipe(Effect.mapError(storageFailure))
+            const overlaps = yield* Replica.receive(trial, yield* Replica.delta(fork, forked)).pipe(
+              Effect.mapError(storageFailure)
+            )
+            const merged = yield* ReplicatedText.get(trial)
+            if (overlaps.length > 0) {
+              // Overlaps are ranges of the merge, which would read badly: say what the text says now
+              const back = InternalPatch.between(merged, theirs.body)
+              return yield* reject(
+                new MergeOverlaps({
+                  version: read.version,
+                  passages: overlaps.map(({ range }) => {
+                    const { end, start } = InternalPatch.followed(back, range)
+                    return theirs.body.slice(start, end)
+                  })
+                })
+              )
+            }
+            const applied = yield* ReplicatedText.modify(
+              text,
+              (before): readonly [boolean, TextPatch.TextPatch] =>
+                before === theirs.body ? [true, InternalPatch.between(before, merged)] : [false, TextPatch.empty]
+            ).pipe(Effect.catch(fromTextError))
+            if (applied) return
+          }
+        })
+
         // Only commands that change the text or place an anchor need its history.
         let edited = false
         let title = current.title
@@ -716,7 +844,7 @@ export const makeWith = ({ run, storage }: {
                     TextPatch.empty
                   ]
                 }
-                return [Option.none(), InternalPatch.replaceAt(found, command.oldString.length, command.newString)]
+                return [Option.none(), InternalPatch.replaceAt(found, command.oldString, command.newString)]
               }
             ).pipe(Effect.catch(fromTextError))
             if (Option.isSome(problem)) return yield* reject(problem.value)
@@ -724,7 +852,19 @@ export const makeWith = ({ run, storage }: {
             break
           }
           case "Update": {
-            if (command.version !== current.version) return yield* conflict(id, command.version, current.version)
+            if (command.version !== current.version) {
+              if (command.merge !== true) return yield* conflict(id, command.version, current.version)
+              const read = (yield* storage.read(id, { version: command.version })).document
+              const body = command.body ?? read.body
+              // A title is one value: a new one wins, and one left alone doesn't undo a change since
+              title = command.title === undefined || command.title === read.title ? title : command.title
+              if (title === current.title && body === read.body) return yield* reject(new Unchanged())
+              if (body !== read.body) {
+                yield* mergeBody(read, body)
+                edited = true
+              }
+              break
+            }
             title = command.title ?? title
             const body = command.body ?? current.body
             if (title === current.title && body === current.body) return yield* reject(new Unchanged())
