@@ -1,6 +1,6 @@
 {
   "name": "@jpowersdev/effect-documents",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
   "license": "MIT",
   "description": "Versioned Markdown documents and anchored review, built on Effect and effect-delta",
