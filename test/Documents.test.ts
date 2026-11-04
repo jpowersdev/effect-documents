@@ -389,6 +389,161 @@ describe("Documents", () => {
       }))
   })
 
+  describe("a discussion through edits", () => {
+    const passage = (document: Document.Document, index = 0) => {
+      const { range } = document.threads[index]!
+      return Option.isSome(range) ? document.body.slice(range.value.start, range.value.end) : undefined
+    }
+    const opened = Effect.gen(function*() {
+      const documents = yield* Documents.Documents
+      yield* documents.create({ ...initial, body: "Sessions last 24 hours. Clicks take 40 ms." })
+      return yield* run(1, { _tag: "Open", thread, start: 14, quote: "24 hours", body: "Why so long?" })
+    })
+
+    it.effect("follows an edit that replaces the whole passage", () =>
+      Effect.gen(function*() {
+        yield* opened
+        const edited = yield* run(2, { _tag: "Edit", oldString: "24 hours", newString: "one day" })
+        assert.strictEqual(passage(edited), "one day")
+        assert.strictEqual(edited.threads[0]!.thread.quote, "24 hours")
+        const later = yield* run(3, { _tag: "Edit", oldString: "Clicks", newString: "On Chromium, clicks" })
+        assert.strictEqual(passage(later), "one day")
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("takes in what replaced an end of the passage", () =>
+      Effect.gen(function*() {
+        yield* opened
+        assert.strictEqual(passage(yield* run(2, { _tag: "Edit", oldString: "24", newString: "8" })), "8 hours")
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("stays when an edit replaces a span with the passage's text still in it", () =>
+      Effect.gen(function*() {
+        yield* opened
+        const edited = yield* run(2, {
+          _tag: "Edit",
+          oldString: "Sessions last 24 hours.",
+          newString: "Sessions last 24 hours. Idle tabs keep them open."
+        })
+        assert.strictEqual(passage(edited), "24 hours")
+        const reworded = yield* run(3, {
+          _tag: "Edit",
+          oldString: "Sessions last 24 hours. Idle",
+          newString: "They last 24 hours. Quiet"
+        })
+        assert.strictEqual(passage(reworded), "24 hours")
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("stays on a passage through two edits, each replacing it", () =>
+      Effect.gen(function*() {
+        yield* opened
+        yield* run(2, { _tag: "Edit", oldString: "24 hours", newString: "8 hours" })
+        const again = yield* run(3, { _tag: "Edit", oldString: "8 hours", newString: "one day" })
+        assert.strictEqual(passage(again), "one day")
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("follows a replaced line through an update of the whole text", () =>
+      Effect.gen(function*() {
+        const documents = yield* Documents.Documents
+        yield* documents.create({ ...initial, body: "Keep this.\nSessions last 24 hours.\nKeep that.\n" })
+        yield* run(1, { _tag: "Open", thread, start: 25, quote: "24 hours", body: "Why?" })
+        const updated = yield* run(2, { _tag: "Update", body: "Keep this.\nSessions last one day.\nKeep that.\n" })
+        assert.strictEqual(passage(updated), "one day")
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("loses the passage only when it's deleted with nothing in its place", () =>
+      Effect.gen(function*() {
+        yield* opened
+        const edited = yield* run(2, { _tag: "Edit", oldString: "24 hours", newString: "" })
+        assert.isTrue(Option.isNone(edited.threads[0]!.range))
+        assert.strictEqual(edited.threads[0]!.thread.quote, "24 hours")
+        assert.isTrue(
+          Option.isNone((yield* run(3, { _tag: "Edit", oldString: "Clicks", newString: "Taps" })).threads[0]!.range)
+        )
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("keeps each version's own place in its history", () =>
+      Effect.gen(function*() {
+        const documents = yield* Documents.Documents
+        yield* opened
+        yield* run(2, { _tag: "Edit", oldString: "24 hours", newString: "one day" })
+        assert.strictEqual(passage(yield* documents.read(id, { version: 2 })), "24 hours")
+        assert.strictEqual(passage(yield* documents.read(id)), "one day")
+      }).pipe(Effect.provide(Live)))
+  })
+
+  describe("merging an update", () => {
+    const body = "First line.\nSessions last 24 hours.\nLast line.\n"
+    const update = (version: number, next: string) =>
+      run(version, { _tag: "Update", body: next, merge: true } as Unversioned)
+
+    it.effect("brings what it changed into text that has changed elsewhere", () =>
+      Effect.gen(function*() {
+        const documents = yield* Documents.Documents
+        yield* documents.create({ ...initial, body })
+        yield* run(1, { _tag: "Edit", oldString: "Last line.", newString: "Last line, edited." })
+        const merged = yield* update(1, "First line, by an agent.\nSessions last 24 hours.\nLast line.\n")
+        assert.strictEqual(merged.body, "First line, by an agent.\nSessions last 24 hours.\nLast line, edited.\n")
+        assert.strictEqual(merged.version, 3)
+        assert.strictEqual((yield* documents.history(id))[2]!.action, "Update")
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("keeps the discussions on what it didn't change", () =>
+      Effect.gen(function*() {
+        const documents = yield* Documents.Documents
+        yield* documents.create({ ...initial, body })
+        yield* run(1, { _tag: "Open", thread, start: 26, quote: "24 hours", body: "Why?" })
+        yield* run(2, { _tag: "Edit", oldString: "Last line.", newString: "Last line, edited." })
+        const merged = yield* update(2, "New start.\nFirst line.\nSessions last 24 hours.\nLast line.\n")
+        const { range } = merged.threads[0]!
+        assert.strictEqual(
+          Option.isSome(range) ? merged.body.slice(range.value.start, range.value.end) : "",
+          "24 hours"
+        )
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("changes nothing and says where when the same text has changed", () =>
+      Effect.gen(function*() {
+        const documents = yield* Documents.Documents
+        yield* documents.create({ ...initial, body })
+        const current = yield* run(1, { _tag: "Edit", oldString: "24 hours", newString: "8 hours" })
+        const failed = yield* update(1, body.replace("24 hours", "12 hours")).pipe(Effect.flip)
+        assert.strictEqual(failed._tag, "DocumentsError")
+        if (failed._tag !== "DocumentsError" || failed.reason._tag !== "MergeOverlaps") {
+          return assert.fail("Expected MergeOverlaps")
+        }
+        assert.strictEqual(failed.reason.version, 1)
+        assert.isTrue(failed.reason.passages.some((passage) => passage.includes("8")))
+        assert.isFalse(failed.reason.passages.some((passage) => passage.includes("12")))
+        assert.deepStrictEqual(yield* documents.read(id), current)
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("is a plain update on the current version", () =>
+      Effect.gen(function*() {
+        const documents = yield* Documents.Documents
+        yield* documents.create({ ...initial, body })
+        assert.strictEqual((yield* update(1, "New.\n")).body, "New.\n")
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("still fails on a stale version without being asked to merge", () =>
+      Effect.gen(function*() {
+        const documents = yield* Documents.Documents
+        yield* documents.create({ ...initial, body })
+        yield* run(1, { _tag: "Edit", oldString: "24", newString: "8" })
+        const failed = yield* run(1, { _tag: "Update", body: "No.\n" }).pipe(Effect.flip)
+        assert.strictEqual(failed._tag, "DocumentStorageError")
+      }).pipe(Effect.provide(Live)))
+
+    it.effect("doesn't undo a title changed since by leaving it alone", () =>
+      Effect.gen(function*() {
+        const documents = yield* Documents.Documents
+        yield* documents.create({ ...initial, body })
+        yield* run(1, { _tag: "Update", title: "Renamed" })
+        const merged = yield* update(1, body.replace("First", "1st"))
+        assert.strictEqual(merged.title, "Renamed")
+        assert.isTrue(merged.body.startsWith("1st"))
+      }).pipe(Effect.provide(Live)))
+  })
+
   describe("failure", () => {
     it.effect("rejects a stale update or restore with the versions involved", () =>
       Effect.gen(function*() {

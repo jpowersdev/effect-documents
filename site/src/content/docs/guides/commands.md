@@ -11,7 +11,7 @@ history unchanged, and invalid input fails with a `SchemaError`.
 | Command   | What it does                                               | Names a version | Fails with                                                  |
 | --------- | ---------------------------------------------------------- | --------------- | ----------------------------------------------------------- |
 | `Edit`    | Replaces exact, literal text; `replaceAll` for every match | No              | `OldStringNotFound`, `AmbiguousOldString`, `Unchanged`      |
-| `Update`  | Replaces the title, the body or both                       | Yes             | `Conflict`, `Unchanged`                                     |
+| `Update`  | Replaces the title, the body or both                       | Yes             | `Conflict`, `Unchanged`, `MergeOverlaps` with `merge`       |
 | `Restore` | Copies an earlier title and body into a new revision       | Yes             | `Conflict`                                                  |
 | `Open`    | Starts a discussion on an exact quote at a UTF-16 offset   | No              | `QuoteChanged`, `ThreadAlreadyExists`                       |
 | `Reply`   | Adds to a discussion, and reopens it if it was resolved    | No              | `ThreadNotFound`                                            |
@@ -24,6 +24,11 @@ An edit that would split a surrogate pair fails with `SplitsSurrogatePair`.
 
 `Update` and `Restore` fail on a stale version, because they could undo work their caller never saw. `Resolve` fails only
 over a reply its caller hasn't seen. Other commands apply to the current text.
+
+`Update` with `merge` doesn't fail on a stale version unless it has to. It brings what it changed from the version it names
+into the current text, as a concurrent edit would, so someone else's work stands. If text it changed has changed since, it
+fails with `MergeOverlaps`, naming those passages, and changes nothing. A title is one value: a new one replaces whatever
+is there, and leaving it alone doesn't undo a change since.
 
 ```ts import.meta.vitest
 import {
@@ -85,12 +90,17 @@ await Effect.runPromise(program.pipe(Effect.provide(DocumentsLive)))
 
 ## Discuss a passage
 
-`Open` anchors a discussion to its original characters. `Edit` keeps the characters between matches, and `Update` diffs by
-line and keeps the common start and end of each changed region, so anchors on unchanged text survive. A very large change
-becomes one replacement, losing the anchors inside it.
+`Open` anchors a discussion to its original characters. `Edit` keeps the characters between matches and what its old and new
+text share at their start and end, and `Update` diffs by line and keeps the common start and end of each changed region, so
+anchors on unchanged text survive.
 
-When every anchored character is deleted, the range becomes `None`, and the quote and discussion remain. `Restore` doesn't
-bring back deleted anchors.
+When an edit replaces either end of a passage, however it's made, the discussion follows to what replaced it, so a passage
+reworded by a command or retyped in a live session keeps its discussion, narrowed to the passage's own words if they're still
+there. A very large change becomes one replacement, which
+the discussions inside it then cover whole. The quote stays what was first quoted.
+
+When every anchored character is deleted and nothing replaces them, the range becomes `None`, and the quote and discussion
+remain. `Restore` doesn't bring back anchors that went that way.
 
 ```ts import.meta.vitest
 import {

@@ -307,6 +307,58 @@ describe("Collaboration", () => {
         assert.strictEqual(Thread.status(resolved.threads[0]!.thread), "resolved")
       }).pipe(Effect.scoped, Effect.provide(Live)))
 
+    it.effect("a discussion follows to what someone retypes over its passage", () =>
+      Effect.gen(function*() {
+        yield* start
+        yield* apply(agent, { _tag: "Open", thread, start: 14, quote: "24 hours", body: "Why so long?" })
+        const ada = yield* join("@ada")
+        const at = (yield* ReplicatedText.get(ada)).indexOf("24 hours")
+        yield* ReplicatedText.remove(ada, at, 8)
+        yield* ReplicatedText.insert(ada, at, "one day")
+        yield* saved(ada)
+        const documents = yield* Documents.Documents
+        const read = yield* documents.read(id)
+        const { range } = read.threads[0]!
+        assert.strictEqual(Option.isSome(range) ? read.body.slice(range.value.start, range.value.end) : "", "one day")
+        assert.strictEqual(read.threads[0]!.thread.quote, "24 hours")
+      }).pipe(Effect.scoped, Effect.provide(Live)))
+
+    it.effect("an update on an older version merges with what people typed since", () =>
+      Effect.gen(function*() {
+        const first = yield* start
+        const ada = yield* join("@ada")
+        yield* ReplicatedText.insert(ada, 0, "Draft: ")
+        yield* saved(ada)
+        const merged = yield* apply(agent, {
+          _tag: "Update",
+          version: first.version,
+          merge: true,
+          body: "Sessions last 8 hours. Keep this sentence."
+        })
+        assert.strictEqual(merged.body, "Draft: Sessions last 8 hours. Keep this sentence.")
+        yield* saved(ada)
+        yield* ReplicatedText.changes(ada).pipe(Stream.filter((text) => text === merged.body), Stream.runHead)
+        assert.strictEqual(yield* ReplicatedText.get(ada), merged.body)
+      }).pipe(Effect.scoped, Effect.provide(Live)))
+
+    it.effect("an update on an older version changes nothing if people changed the same text", () =>
+      Effect.gen(function*() {
+        const first = yield* start
+        const ada = yield* join("@ada")
+        const at = (yield* ReplicatedText.get(ada)).indexOf("24")
+        yield* ReplicatedText.remove(ada, at, 2)
+        yield* ReplicatedText.insert(ada, at, "12")
+        yield* saved(ada)
+        const failed = yield* Effect.flip(apply(agent, {
+          _tag: "Update",
+          version: first.version,
+          merge: true,
+          body: "Sessions last 8 hours. Keep this sentence."
+        }))
+        assert.strictEqual(failed._tag, "DocumentsError")
+        assert.strictEqual(yield* ReplicatedText.get(ada), "Sessions last 12 hours. Keep this sentence.")
+      }).pipe(Effect.scoped, Effect.provide(Live)))
+
     it.effect("a client can anchor to a discussion's passage itself", () =>
       Effect.gen(function*() {
         yield* start
